@@ -1,0 +1,20 @@
+QMainWindow {
+    background-color: #f0f0f0;
+}
+
+#control_bar QPushButton {
+    background-color: #FF9900;
+    border: none;
+    padding: 8px 15px;
+    font-size: 13px;
+}
+
+QStackedWidget {
+    border: 1px solid #ccc;
+    background-color: white;
+}
+
+QLabel {
+    padding: 20px;
+    color: red;
+}
