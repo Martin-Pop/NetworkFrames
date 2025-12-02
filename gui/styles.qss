@@ -10,11 +10,42 @@ QMainWindow {
 }
 
 QStackedWidget {
-    border: 1px solid #ccc;
-    background-color: white;
+    border: 1px solid #999999;
+    background-color: #F3F3F3;
 }
 
 QLabel {
     padding: 20px;
     color: red;
 }
+/* COMMON */
+* {
+    font-family: Arial, sans-serif;
+    font-size: 12px;
+}
+
+QPushButton[styleClass~="common_button"] {
+    background-color: #FF9900;
+    padding: 8px 15px;
+    font-size: 13px;
+    border: 1px solid #FFFFFF;
+    border-radius: 2px;
+    padding: 5px 8px;
+}
+
+
+/* ---- EDITOR PAGE ----*/
+
+
+/* PREVIEW */
+QTabWidget#preview_tabs {
+    background-color: #f0f0f0;
+    border: 1px solid #999999;
+}
+
+QTabWidget QTextEdit {
+    background-color: #BEBEBE;
+    border: 1px solid #999999;
+    color: #FFFFFF
+}
+

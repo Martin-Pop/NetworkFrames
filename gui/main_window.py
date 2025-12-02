@@ -4,6 +4,10 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 
+from .pages import *
+from .pages.editor_page import EditorPage
+
+
 class MainWindow(QMainWindow):
 
     def __init__(self):
@@ -25,6 +29,8 @@ class MainWindow(QMainWindow):
         self.btn_frames = QPushButton("Frames")
         self.btn_settings = QPushButton("Settings")
 
+        self.editor_page = EditorPage()
+
         control_layout.addWidget(self.btn_editor)
         control_layout.addWidget(self.btn_frames)
         control_layout.addStretch()
@@ -32,11 +38,11 @@ class MainWindow(QMainWindow):
 
         self.stacked_widget = QStackedWidget()
 
-        self.ethernet_page = self._create_page("--editor--")
+        # self.ethernet_page = self._create_page("--editor--")
         self.ip_page = self._create_page("--frames--")
         self.settings_page = self._create_page("--settings--")
 
-        self.stacked_widget.addWidget(self.ethernet_page)
+        self.stacked_widget.addWidget(self.editor_page)
         self.stacked_widget.addWidget(self.ip_page)
         self.stacked_widget.addWidget(self.settings_page)
 
