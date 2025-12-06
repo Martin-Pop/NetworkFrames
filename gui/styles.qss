@@ -11,7 +11,7 @@ QMainWindow {
 
 QStackedWidget {
     border: 1px solid #999999;
-    background-color: #F3F3F3;
+    background-color: #B1B1B1;
 }
 
 QLabel {

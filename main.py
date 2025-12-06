@@ -16,6 +16,8 @@
 
 import sys
 from PySide6.QtWidgets import QApplication
+
+from controllers.editor_controller import EditorController
 from gui.main_window import MainWindow
 import os
 
@@ -30,6 +32,9 @@ def main():
         print(f"Err '{style_file_path}'.")
 
     window = MainWindow()
+
+    editor_controller = EditorController(window.editor_page)
+
     window.show()
     sys.exit(app.exec())
 

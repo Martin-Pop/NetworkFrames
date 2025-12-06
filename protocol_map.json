@@ -25,6 +25,19 @@
       "Ether"
     ]
   },
+  "IPv6": {
+    "fields": {
+      "src": {
+        "description": "Source IP"
+      },
+      "dst": {
+        "description": "Destination IP"
+      }
+    },
+    "can_be_payload_of": [
+      "Ether"
+    ]
+  },
   "TCP": {
     "fields": {
       "sport": {

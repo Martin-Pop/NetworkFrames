@@ -1,5 +1,6 @@
 from .protocol_wrapper import ProtocolWrapper
 
+
 class PacketBuilder:
     def __init__(self, protocol_map):
         self.wrappers = {}
@@ -27,14 +28,41 @@ class PacketBuilder:
         """
         return self.wrappers[protocol_name].can_be_payload_of
 
+    def get_commutable_protocols(self, protocol_name: str, upper_name: str | None, lower_name: str | None) -> list:
+        """
+        Returns a list of protocols that can replace 'protocol_name' in the current stack position.
+
+        :param protocol_name: The current protocol at this position (to be excluded from results)
+        :param upper_name: The protocol immediately above (or None if top of stack)
+        :param lower_name: The protocol immediately below (or None if bottom of stack)
+        :return: List of valid replacement protocol names
+        """
+
+        if lower_name:
+            candidates = set(self.get_possible_upper_protocols(lower_name))
+        else:
+            candidates = set(self.wrappers.keys())
+
+        if upper_name:
+            required_bases = set(self.get_possible_lower_protocols(upper_name))
+            valid_replacements = list(candidates & required_bases)
+        else:
+            valid_replacements = list(candidates)
+
+        # if protocol_name in valid_replacements:
+        #     valid_replacements.remove(protocol_name)
+
+        return valid_replacements
+
+    def get_all_protocols(self) -> list:
+        return list(self.wrappers.keys())
+
     def build_packet(self, layer_names: list):
         """
         Builds a packet from a list of layers
         :param layer_names: list of layer names - must be from lowest to highest layer
         :return: final scapy packet (frame)
         """
-
-        packet = None
 
         # build scapy protocol object from wrappers
         layers_to_build = []
