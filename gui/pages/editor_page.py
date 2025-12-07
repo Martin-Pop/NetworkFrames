@@ -22,12 +22,14 @@ class EditorPage(QWidget):
         self.left_panel.setObjectName("left_editor_panel")
 
         left_layout = QVBoxLayout(self.left_panel)
-        left_layout.setContentsMargins(5, 5, 5, 5)
+        left_layout.setContentsMargins(0,0,0,0)
         left_layout.setSpacing(10)
 
         # Protocol Stack
         self.protocol_stack_widget = ProtocolStackWidget()
         left_layout.addWidget(self.protocol_stack_widget)
+
+        left_layout.addStretch()
 
         # Preview
         self.preview_widget = PreviewOutput()
@@ -92,12 +94,13 @@ class ProtocolStackWidget(QWidget):
         self.protocol_stack_editor_widget = ProtocolEditorDialog(self)
 
         self.button_container = QVBoxLayout()
+        self.button_container.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.edit_button = QPushButton("Edit")
         self.edit_button.clicked.connect(lambda: self.protocol_stack_editor_widget.exec())
 
-        self.main_layout.addLayout(self.button_container)
-        self.main_layout.addStretch()
         self.main_layout.addWidget(self.edit_button)
+        self.main_layout.addLayout(self.button_container)
+        # self.main_layout.addStretch()
 
     def _clear_buttons(self):
         while self.button_container.count():
@@ -110,8 +113,9 @@ class ProtocolStackWidget(QWidget):
     def update_buttons(self, protocol_list):
 
         self._clear_buttons()
+        self.button_container.addStretch()
 
-        for protocol in protocol_list:
+        for protocol in reversed(protocol_list):
             btn = QPushButton(protocol)
             btn.clicked.connect(lambda checked, p=protocol: self._on_protocol_clicked(p))
             self.button_container.addWidget(btn)
@@ -123,7 +127,6 @@ class ProtocolStackWidget(QWidget):
 
 class ProtocolEditorDialog(QDialog):
 
-    protocolStackSaved = Signal(list)
     protocolStackUpdated = Signal(tuple)
 
     def __init__(self, parent=None):
@@ -154,13 +157,12 @@ class ProtocolEditorDialog(QDialog):
 
         main_layout.addLayout(button_layout)
 
-        self.save_button.clicked.connect(self._handle_save_and_close)
+        self.save_button.clicked.connect(self.accept)
         self.cancel_button.clicked.connect(self.reject)
 
     def rebuild(self, protocol_list):
         self._clear_layout()
         self.editor_container.addStretch()
-
 
         reversed_indexes = range(len(protocol_list)-1 , -1, -1)
 
@@ -193,15 +195,6 @@ class ProtocolEditorDialog(QDialog):
             widget = item.widget()
             if widget:
                 widget.deleteLater()
-
-    def _handle_save_and_close(self):
-
-        values = []
-        for combo_box in self.editor_container.findChildren(QComboBox):
-            values.append(combo_box.currentText())
-
-        self.protocolStackSaved.emit(values)
-        self.accept()
 
 
 class ActionPanelWidget(QWidget):
