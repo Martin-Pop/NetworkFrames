@@ -37,7 +37,6 @@ class EditorController:
 
             current_proto = self.edited_stack[index][0]
             options = self.builder.get_commutable_protocols(
-                current_proto,
                 upper_neighbor,
                 lower_neighbor
             )
@@ -56,6 +55,14 @@ class EditorController:
             possible_upper = self.builder.get_possible_upper_protocols(incoming_protocol_name)
             possible_lower = self.builder.get_possible_lower_protocols(incoming_protocol_name)
 
+            if upper_neighbor:
+                self.edited_stack[index+1] = (upper_neighbor, possible_upper)
+                print('updated upper_neighbor options')
+
+            if lower_neighbor:
+                self.edited_stack[index-1] = (lower_neighbor, possible_lower)
+                print('updated lower_neighbor options')
+
             # try to add above
             if index == len(self.edited_stack) - 1 and possible_upper:
                 self.edited_stack.append((None, None))
@@ -66,13 +73,7 @@ class EditorController:
                 self.edited_stack.insert(0, (None, None))
                 print("  -> Added extension button BELOW")
 
-            if upper_neighbor:
-                self.edited_stack[index+1] = (upper_neighbor, possible_upper)
-                print('updated upper_neighbor options')
 
-            if lower_neighbor:
-                self.edited_stack[index-1] = (lower_neighbor, possible_lower)
-                print('updated lower_neighbor options')
 
 
         self.protocol_stack_editor_widget.rebuild(self.edited_stack)

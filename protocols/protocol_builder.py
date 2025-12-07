@@ -28,14 +28,12 @@ class PacketBuilder:
         """
         return self.wrappers[protocol_name].can_be_payload_of
 
-    def get_commutable_protocols(self, protocol_name: str, upper_name: str | None, lower_name: str | None) -> list:
+    def get_commutable_protocols(self, upper_name: str | None, lower_name: str | None) -> list:
         """
-        Returns a list of protocols that can replace 'protocol_name' in the current stack position.
-
-        :param protocol_name: The current protocol at this position (to be excluded from results)
+        Returns a list of protocols that can be between specified upper and lower protocol in the current stack position.
         :param upper_name: The protocol immediately above (or None if top of stack)
         :param lower_name: The protocol immediately below (or None if bottom of stack)
-        :return: List of valid replacement protocol names
+        :return: List of valid protocol names
         """
 
         if lower_name:
@@ -49,12 +47,13 @@ class PacketBuilder:
         else:
             valid_replacements = list(candidates)
 
-        # if protocol_name in valid_replacements:
-        #     valid_replacements.remove(protocol_name)
-
         return valid_replacements
 
     def get_all_protocols(self) -> list:
+        """
+        Gets all available protocols (wrappers keys)
+        :return: list of protocol names
+        """
         return list(self.wrappers.keys())
 
     def build_packet(self, layer_names: list):
