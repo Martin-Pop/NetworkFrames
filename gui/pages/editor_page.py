@@ -8,6 +8,7 @@ from PySide6.QtCore import Qt, Signal, Slot
 
 from gui.utils import setup_placeholder
 
+
 class EditorPage(QWidget):
 
     def __init__(self, parent=None):
@@ -22,7 +23,7 @@ class EditorPage(QWidget):
         self.left_panel.setObjectName("left_editor_panel")
 
         left_layout = QVBoxLayout(self.left_panel)
-        left_layout.setContentsMargins(0,0,0,0)
+        left_layout.setContentsMargins(0, 0, 0, 0)
         left_layout.setSpacing(10)
 
         # Protocol Stack
@@ -49,39 +50,8 @@ class EditorPage(QWidget):
 
         main_layout.addWidget(self.splitter)
 
-class PreviewOutput(QTabWidget):
-
-    def __init__(self):
-        super().__init__()
-        self.setObjectName("preview_tabs")
-        self.setTabPosition(QTabWidget.TabPosition.South)
-
-        self.hex_preview = QTextEdit()
-        self.bin_preview = QTextEdit()
-
-        self.hex_tab = self._create_preview(self.hex_preview,"Hexadecimal...")
-        self.bin_tab = self._create_preview(self.bin_preview,"Binary...")
-
-        self.addTab(self.hex_tab, 'hex')
-        self.addTab(self.bin_tab, 'bin')
-
-    def _create_preview(self, qtext_edit, placeholder_text):
-        tab_page = QWidget()
-
-        layout = QVBoxLayout(tab_page)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-
-        qtext_edit.setReadOnly(True)
-        qtext_edit.setPlaceholderText(placeholder_text)
-
-        layout.addWidget(qtext_edit)
-
-        return tab_page
-
 
 class ProtocolStackWidget(QWidget):
-
     protocolSelected = Signal(str)
 
     def __init__(self):
@@ -91,12 +61,12 @@ class ProtocolStackWidget(QWidget):
         self.main_layout.setContentsMargins(10, 10, 10, 10)
 
         # Protocol stack editor
-        self.protocol_stack_editor_widget = ProtocolEditorDialog(self)
+        self.editor = ProtocolEditorDialog(self)
 
         self.button_container = QVBoxLayout()
         self.button_container.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.edit_button = QPushButton("Edit")
-        self.edit_button.clicked.connect(lambda: self.protocol_stack_editor_widget.exec())
+        self.edit_button.clicked.connect(lambda: self.editor.exec())
 
         self.main_layout.addWidget(self.edit_button)
         self.main_layout.addLayout(self.button_container)
@@ -126,14 +96,13 @@ class ProtocolStackWidget(QWidget):
 
 
 class ProtocolEditorDialog(QDialog):
-
-    protocolStackUpdated = Signal(tuple)
+    stackUpdated = Signal(tuple)
 
     def __init__(self, parent=None):
         super().__init__(parent)
 
         self.setWindowTitle("Stack editor")
-        self.setGeometry(100,100,600, 400)
+        self.setGeometry(100, 100, 600, 400)
 
         main_layout = QVBoxLayout(self)
 
@@ -147,9 +116,9 @@ class ProtocolEditorDialog(QDialog):
         button_layout = QHBoxLayout()
 
         self.save_button = QPushButton("Save")
-        self.save_button.setProperty('styleClass','common_button')
+        self.save_button.setProperty('styleClass', 'common_button')
         self.cancel_button = QPushButton("Cancel")
-        self.cancel_button.setProperty('styleClass','common_button')
+        self.cancel_button.setProperty('styleClass', 'common_button')
 
         button_layout.addWidget(self.cancel_button)
         button_layout.addStretch()
@@ -164,14 +133,14 @@ class ProtocolEditorDialog(QDialog):
         self._clear_layout()
         self.editor_container.addStretch()
 
-        reversed_indexes = range(len(protocol_list)-1 , -1, -1)
+        reversed_indexes = range(len(protocol_list) - 1, -1, -1)
 
-        for i,protocol in zip(reversed_indexes, reversed(protocol_list)):
+        for i, protocol in zip(reversed_indexes, reversed(protocol_list)):
             current, other = protocol
 
             if current is None and other is None:
                 widget = QPushButton('Add')
-                widget.clicked.connect(lambda checked, index=i: self.protocolStackUpdated.emit((index, None)))
+                widget.clicked.connect(lambda checked, index=i: self.stackUpdated.emit((index, None)))
             else:
                 widget = QComboBox()
                 widget.addItems(other)
@@ -181,13 +150,14 @@ class ProtocolEditorDialog(QDialog):
                 else:
                     widget.setCurrentText(current)
 
-                widget.currentIndexChanged.connect(lambda idx, combo=widget, index=i: self._on_protocol_selected(combo, index))
+                widget.currentIndexChanged.connect(
+                    lambda idx, combo=widget, index=i: self._on_protocol_selected(combo, index))
 
             self.editor_container.addWidget(widget)
 
     def _on_protocol_selected(self, combo_widget, index):
         selected_text = combo_widget.currentText()
-        self.protocolStackUpdated.emit((index, selected_text))
+        self.stackUpdated.emit((index, selected_text))
 
     def _clear_layout(self):
         while self.editor_container.count():
@@ -197,16 +167,47 @@ class ProtocolEditorDialog(QDialog):
                 widget.deleteLater()
 
 
+class PreviewOutput(QTabWidget):
+
+    def __init__(self):
+        super().__init__()
+        self.setObjectName("preview_tabs")
+        self.setTabPosition(QTabWidget.TabPosition.South)
+
+        self.hex_preview = QTextEdit()
+        self.bin_preview = QTextEdit()
+
+        self.hex_tab = self._create_preview(self.hex_preview, "Hexadecimal...")
+        self.bin_tab = self._create_preview(self.bin_preview, "Binary...")
+
+        self.addTab(self.hex_tab, 'hex')
+        self.addTab(self.bin_tab, 'bin')
+
+    def _create_preview(self, qtext_edit, placeholder_text):
+        tab_page = QWidget()
+
+        layout = QVBoxLayout(tab_page)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+
+        qtext_edit.setReadOnly(True)
+        qtext_edit.setPlaceholderText(placeholder_text)
+
+        layout.addWidget(qtext_edit)
+
+        return tab_page
+
+
 class ActionPanelWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
         main_layout = QHBoxLayout(self)
-        main_layout.setContentsMargins(1,1,1,1)
+        main_layout.setContentsMargins(1, 1, 1, 1)
         main_layout.setSpacing(5)
 
         self.btn_build = QPushButton("Build")
-        self.btn_build.setProperty('styleClass','common_button')
+        self.btn_build.setProperty('styleClass', 'common_button')
         self.btn_clear = QPushButton("Clear")
         self.btn_clear.setProperty('styleClass', 'common_button')
 
