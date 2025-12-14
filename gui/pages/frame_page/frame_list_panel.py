@@ -41,16 +41,17 @@ class FrameListPanel(QTreeWidget):
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self._open_context_menu)
 
-    def add_packet(self, packet_id, time, src, dst, proto, length, info):
+    def add_frame(self, info):
+        print(info)
         item = QTreeWidgetItem(self)
-        item.setText(0, str(packet_id))
-        item.setText(1, str(time))
-        item.setText(2, src)
-        item.setText(3, dst)
-        item.setText(4, proto)
-        item.setText(5, str(length))
-        item.setText(6, info)
-        item.setData(0, Qt.ItemDataRole.UserRole, packet_id)
+        item.setText(0, str(info['id']))
+        #item.setText(1, str(time))
+        item.setText(2, info.get('src', ''))
+        item.setText(3, info.get('dst', ''))
+        #item.setText(4, proto)
+        #item.setText(5, str(length))
+        #item.setText(6, info)
+        item.setData(0, Qt.ItemDataRole.UserRole, info['id'])
 
     def _on_item_clicked(self, item, _):
         pkt_id = item.data(0, Qt.ItemDataRole.UserRole)
@@ -76,13 +77,13 @@ class FrameListPanel(QTreeWidget):
         else:
             count = len(selected_items)
             delete_action = QAction(f"Delete Packet(s) ({count})")
-            delete_action.triggered.connect(self._delete_selected_packets)
+            delete_action.triggered.connect(self._delete_selected_frames)
 
             menu.addAction(delete_action)
 
         menu.exec(self.mapToGlobal(position))
 
-    def _delete_selected_packets(self):
+    def _delete_selected_frames(self):
         items = self.selectedItems()
         if not items:
             return
@@ -102,6 +103,6 @@ class FrameListPanel(QTreeWidget):
 
     def _get_pcap_file(self):
         file_filter = "Packet Capture (*.pcap)"
-        file_name = get_file(self, file_filter)
+        file_name, _ = get_file(self, file_filter)
         if file_name:
             self.addNewFrame.emit(file_name)
