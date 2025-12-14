@@ -24,7 +24,6 @@ class EditorController:
         self._stack_widget.editor.rebuild(self._stack.edited_protocol_stack)
 
     def _on_editor_exit(self, code):
-        print('code is',code)
         if code == 1:
             self._stack.save()
             self._stack_widget.update_buttons(self._stack.protocol_stack)
