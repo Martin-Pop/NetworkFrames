@@ -30,3 +30,7 @@ class EditorController:
         else:
             self._stack.revert()
             self._stack_widget.editor.rebuild(self._stack.edited_protocol_stack)
+
+    def open(self, _id):
+        print('opening id:', _id)
+

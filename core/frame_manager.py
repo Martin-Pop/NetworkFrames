@@ -1,8 +1,13 @@
 from scapy.layers.l2 import Ether
+from PySide6.QtCore import QObject, Signal
 
 
-class NetworkFrame:
+class NetworkFrame(QObject):
+
+    infoUpdated = Signal()
+
     def __init__(self, id, scapy_obj=None):
+        super().__init__()
         self.info = {
             "id": id,
         }
@@ -26,7 +31,7 @@ class NetworkFrame:
                 self.info['dst'] = eth.fields['dst']
 
         print('info updated')
-        # self.info = self.scapy.info()
+        self.infoUpdated.emit()
 
 class FrameManager:
 

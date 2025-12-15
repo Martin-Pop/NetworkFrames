@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
         self.btn_editor = QPushButton("Editor")
         self.btn_settings = QPushButton("Settings")
 
-        self.editor_page = self._create_page("--editor--") #EditorPage()
+        self.editor_page =  EditorPage() #self._create_page("--editor--")
 
         control_layout.addWidget(self.btn_frames)
         control_layout.addWidget(self.btn_editor)

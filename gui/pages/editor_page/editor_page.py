@@ -43,7 +43,8 @@ class EditorPage(QWidget):
 
         self.right_panel = QWidget()
         self.right_panel.setObjectName("right_editor_panel")
-        setup_placeholder(self.right_panel, "Right panel")
+
+        # setup_placeholder(self.right_panel, "Right panel")
 
         self.splitter.addWidget(self.left_panel)
         self.splitter.addWidget(self.right_panel)

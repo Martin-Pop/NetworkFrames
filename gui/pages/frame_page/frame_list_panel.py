@@ -9,67 +9,73 @@ from gui.utils import get_file
 
 
 class FrameListPanel(QTreeWidget):
+    """
+    This gui class represents a list of all frames.
+    """
 
-    frameSelected = Signal(int)
-    framesDeleted = Signal(list)
-    addNewFrame = Signal(str) #file path or empty string
+    frameSelected = Signal(int)  # when frame gets selected
+    framesDeleted = Signal(list) # when frames get deleted
+    addNewFrame = Signal(str)  # when new frame is added
 
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        columns = ["No.", "Time", "Source", "Destination", "Protocol", "Length", "Info"]
+        columns = ["Number", "Source", "Destination", "Protocol", "Length", "Info"]
         self.setColumnCount(len(columns))
         self.setHeaderLabels(columns)
 
         self.setRootIsDecorated(False)
         self.setAlternatingRowColors(True)
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
-
         self.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
-
         self.setUniformRowHeights(True)
 
         header = self.header()
         header.resizeSection(0, 60)
-        header.resizeSection(1, 100)
-        header.resizeSection(4, 80)
+        header.resizeSection(1, 120)
+        header.resizeSection(4, 120)
         header.resizeSection(5, 70)
-        header.setSectionResizeMode(6, QHeaderView.ResizeMode.Stretch)
-
-        self.itemClicked.connect(self._on_item_clicked)
+        header.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
 
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self._open_context_menu)
+        self.itemDoubleClicked.connect(self._on_item_clicked)
 
-    def add_frame(self, info):
-        print(info)
+    def add_frame(self, frame):
+
         item = QTreeWidgetItem(self)
-        item.setText(0, str(info['id']))
-        #item.setText(1, str(time))
-        item.setText(2, info.get('src', ''))
-        item.setText(3, info.get('dst', ''))
-        #item.setText(4, proto)
-        #item.setText(5, str(length))
-        #item.setText(6, info)
-        item.setData(0, Qt.ItemDataRole.UserRole, info['id'])
+
+        def on_info_updated():
+            item.setText(0, str(frame.info['id']))
+            item.setText(1, frame.info.get('src', ''))
+            item.setText(2, frame.info.get('dst', ''))
+            item.setData(0, Qt.ItemDataRole.UserRole, frame.info['id'])
+
+        frame.infoUpdated.connect(on_info_updated)
+        on_info_updated()
 
     def _on_item_clicked(self, item, _):
+        """
+        When item is double-clicked sends signal with its id.
+        :param item: clicked item
+        """
         pkt_id = item.data(0, Qt.ItemDataRole.UserRole)
         self.frameSelected.emit(pkt_id)
 
-
     def _open_context_menu(self, position: QPoint):
-
-        # item = self.itemAt(position)
+        """
+        Opens context menu
+        :param position: mouse position
+        """
 
         selected_items = self.selectedItems()
         menu = QMenu()
         if not selected_items:
             add_new = QAction('Add new packet')
-            add_new.triggered.connect(lambda : self.addNewFrame.emit(''))
+            add_new.triggered.connect(lambda: self.addNewFrame.emit(''))
 
             load_from_pcap = QAction('Load from pcap')
-            load_from_pcap.triggered.connect(lambda : self._get_pcap_file())
+            load_from_pcap.triggered.connect(lambda: self._get_pcap_file())
 
             menu.addAction(add_new)
             menu.addAction(load_from_pcap)
@@ -84,6 +90,9 @@ class FrameListPanel(QTreeWidget):
         menu.exec(self.mapToGlobal(position))
 
     def _delete_selected_frames(self):
+        """
+        Delete selected frames and emits signal with ids.
+        """
         items = self.selectedItems()
         if not items:
             return
@@ -102,7 +111,11 @@ class FrameListPanel(QTreeWidget):
         self.framesDeleted.emit(deleted_ids)
 
     def _get_pcap_file(self):
+        """
+        Gets pcap file and emits signal with its path.
+        :return:
+        """
         file_filter = "Packet Capture (*.pcap)"
-        file_name, _ = get_file(self, file_filter)
-        if file_name:
-            self.addNewFrame.emit(file_name)
+        file_path = get_file(self, file_filter)
+        if file_path:
+            self.addNewFrame.emit(file_path)

@@ -12,7 +12,7 @@ def setup_placeholder(label_text):
     return widget
 
 def get_file(parent_widget, file_filter):
-    file_path = QFileDialog.getOpenFileName(
+    file_path, _ = QFileDialog.getOpenFileName(
         parent_widget,
         "Select a file",
         "",

@@ -19,6 +19,7 @@ from PySide6.QtWidgets import QApplication
 
 from controllers.editor_controller import EditorController
 from controllers.frame_page_controller import FramePageController
+from controllers.main_controller import MainController
 from core.frame_manager import FrameManager
 from gui.main_window import MainWindow
 import os
@@ -35,10 +36,7 @@ def main():
 
     window = MainWindow()
 
-    frame_manager = FrameManager()
-
-    #editor_controller = EditorController(window.editor_page)
-    frame_page_controller = FramePageController(window.frame_page, frame_manager)
+    main_controller = MainController(window)
 
     window.show()
     sys.exit(app.exec())
