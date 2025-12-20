@@ -1,13 +1,13 @@
 from PySide6.QtWidgets import (
     QWidget, QHBoxLayout, QSplitter,
-    QVBoxLayout, QTextEdit, QTabWidget
+    QVBoxLayout, QTextEdit, QTabWidget, QLabel
 )
 
 from PySide6.QtCore import Qt
 
 from gui.pages.editor_page.action_panel import ActionPanelWidget
 from gui.pages.editor_page.protocol_stack_panel import ProtocolStackWidget
-from gui.utils import setup_placeholder
+from gui.pages.editor_page.editor_panel import FieldEditorWidget
 
 
 class EditorPage(QWidget):
@@ -24,18 +24,27 @@ class EditorPage(QWidget):
         self.left_panel.setObjectName("left_editor_panel")
 
         left_layout = QVBoxLayout(self.left_panel)
-        left_layout.setContentsMargins(0, 0, 0, 0)
-        left_layout.setSpacing(10)
+        left_layout.setContentsMargins(5, 5, 5, 5)
+        left_layout.setSpacing(5)
+
+        # ID label
+        self.frame_id_label = QLabel('Frame ID:')
+        self.frame_id_label.setObjectName("frame_id_label")
+        left_layout.addWidget(self.frame_id_label,0)
 
         # Protocol Stack
         self.protocol_stack_widget = ProtocolStackWidget()
-        left_layout.addWidget(self.protocol_stack_widget)
+        left_layout.addWidget(self.protocol_stack_widget,1)
 
-        left_layout.addStretch()
+        # left_layout.addStretch()
 
         # Preview
-        self.preview_widget = PreviewOutput()
-        left_layout.addWidget(self.preview_widget)
+        # self.preview_widget = PreviewOutput()
+        # left_layout.addWidget(self.preview_widget)
+
+        # Info
+        self.info_widget = InfoOutputWidget()
+        left_layout.addWidget(self.info_widget,0)
 
         # Action buttons
         self.action_panel_widget = ActionPanelWidget()
@@ -44,6 +53,12 @@ class EditorPage(QWidget):
         self.right_panel = QWidget()
         self.right_panel.setObjectName("right_editor_panel")
 
+        right_layout = QVBoxLayout(self.right_panel)
+
+        # Protocol field Editor
+        self.editor = FieldEditorWidget()
+        right_layout.addWidget(self.editor)
+
         # setup_placeholder(self.right_panel, "Right panel")
 
         self.splitter.addWidget(self.left_panel)
@@ -51,6 +66,17 @@ class EditorPage(QWidget):
         self.splitter.setSizes([200, 300])
 
         main_layout.addWidget(self.splitter)
+
+    def load_editor(self):
+        pass
+
+class InfoOutputWidget(QTextEdit):
+    def __init__(self):
+        super().__init__()
+
+        self.setReadOnly(True)
+        self.setPlaceholderText("Select something to show info")
+        self.setObjectName("info_widget")
 
 
 class PreviewOutput(QTabWidget):

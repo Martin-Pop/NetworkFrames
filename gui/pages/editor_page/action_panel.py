@@ -1,5 +1,5 @@
 from PySide6.QtWidgets import (
-    QWidget, QHBoxLayout,QPushButton,
+    QWidget, QHBoxLayout,QPushButton, QSizePolicy
 )
 
 class ActionPanelWidget(QWidget):
@@ -7,14 +7,17 @@ class ActionPanelWidget(QWidget):
         super().__init__(parent)
 
         main_layout = QHBoxLayout(self)
-        main_layout.setContentsMargins(1, 1, 1, 1)
+        main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(5)
 
-        self.btn_build = QPushButton("Build")
-        self.btn_build.setProperty('styleClass', 'common_button')
-        self.btn_clear = QPushButton("Clear")
-        self.btn_clear.setProperty('styleClass', 'common_button')
+        self.btn_save = QPushButton("Save")
+        self.btn_validate = QPushButton("Validate")
+        self.btn_exit = QPushButton("Exit")
 
-        main_layout.addWidget(self.btn_build)
-        main_layout.addStretch()
-        main_layout.addWidget(self.btn_clear)
+        for btn in (self.btn_save, self.btn_validate, self.btn_exit):
+            btn.setProperty('styleClass', 'common_button')
+            btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+
+        main_layout.addWidget(self.btn_save)
+        main_layout.addWidget(self.btn_validate)
+        main_layout.addWidget(self.btn_exit)

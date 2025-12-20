@@ -1,17 +1,17 @@
 QMainWindow {
-    background-color: #f0f0f0;
+    background-color: #FFFFFF;
 }
 
 #control_bar QPushButton {
-    background-color: #FF9900;
+    background-color: #EF8354;
     border: none;
     padding: 8px 15px;
     font-size: 13px;
 }
 
 QStackedWidget {
-    border: 1px solid #999999;
-    background-color: #B1B1B1;
+    border: 1px solid #BFC0C0;
+    background-color: #FFFFFF;
 }
 
 QLabel {
@@ -25,27 +25,47 @@ QLabel {
 }
 
 QPushButton[styleClass~="common_button"] {
-    background-color: #FF9900;
+    background-color: #EF8354;
     padding: 8px 15px;
     font-size: 13px;
-    border: 1px solid #FFFFFF;
     border-radius: 2px;
-    padding: 5px 8px;
 }
 
 
 /* ---- EDITOR PAGE ----*/
 
+/* stack */
 
-/* PREVIEW */
-QTabWidget#preview_tabs {
-    background-color: #f0f0f0;
-    border: 1px solid #999999;
+QLabel#frame_id_label {
+    font-size: 13px;
+    font-weight: bold;
+    color: #2D3142;
+    padding: 0px
 }
 
-QTabWidget QTextEdit {
-    background-color: #BEBEBE;
-    border: 1px solid #999999;
-    color: #FFFFFF
+QFrame#protocol_stack_widget {
+    border: 2px solid #4F5D75
+}
+
+QPushButton#protocol_stack_edit_button {
+    background-color: #4F5D75;
+    font-size: 13px;
+    border-radius: 0px;
+    padding: 4px 6px;
+}
+QPushButton[styleClass~='protocol_stack_button'] {
+    background-color: #EF8354;
+    border-radius: 2px;
+    padding: 4px 6px;
+}
+
+
+
+
+QTextEdit#info_widget {
+    background-color: #BFC0C0;
+    border: none;
+    color: #FFFFFF;
+    placeholder-text-color: #FFFFFF
 }
 

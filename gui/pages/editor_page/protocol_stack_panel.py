@@ -1,30 +1,34 @@
 from PySide6.QtWidgets import (
     QWidget, QHBoxLayout, QVBoxLayout,
-    QPushButton,QDialog, QComboBox
+    QPushButton, QDialog, QComboBox, QFrame
 )
 
 from PySide6.QtCore import Qt, Signal, Slot
 
-class ProtocolStackWidget(QWidget):
+class ProtocolStackWidget(QFrame):
     protocolSelected = Signal(str)
 
     def __init__(self):
         super().__init__()
+        self.setObjectName('protocol_stack_widget')
 
-        self.main_layout = QVBoxLayout(self)
-        self.main_layout.setContentsMargins(10, 10, 10, 10)
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0,0,0,0)
+        main_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         # Protocol stack editor
         self.editor = ProtocolEditorDialog(self)
 
         self.button_container = QVBoxLayout()
-        self.button_container.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.edit_button = QPushButton("Edit")
+        self.button_container.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+        self.button_container.setContentsMargins(10,10,10,10)
+        self.edit_button = QPushButton("Edit Protocol Stack")
+        self.edit_button.setObjectName("protocol_stack_edit_button")
         self.edit_button.clicked.connect(lambda: self.editor.exec())
 
-        self.main_layout.addWidget(self.edit_button)
-        self.main_layout.addLayout(self.button_container)
-        # self.main_layout.addStretch()
+        main_layout.addWidget(self.edit_button, 1)
+        main_layout.addLayout(self.button_container,5)
+
 
     def _clear_buttons(self):
         while self.button_container.count():
@@ -37,10 +41,10 @@ class ProtocolStackWidget(QWidget):
     def update_buttons(self, protocol_list):
 
         self._clear_buttons()
-        self.button_container.addStretch()
 
         for protocol in reversed(protocol_list):
             btn = QPushButton(protocol)
+            btn.setProperty('styleClass', 'protocol_stack_button')
             btn.clicked.connect(lambda checked, p=protocol: self._on_protocol_clicked(p))
             self.button_container.addWidget(btn)
 
