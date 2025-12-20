@@ -22,13 +22,13 @@ class ProtocolStackWidget(QFrame):
         self.button_container = QVBoxLayout()
         self.button_container.setAlignment(Qt.AlignmentFlag.AlignVCenter)
         self.button_container.setContentsMargins(10,10,10,10)
+
         self.edit_button = QPushButton("Edit Protocol Stack")
         self.edit_button.setObjectName("protocol_stack_edit_button")
         self.edit_button.clicked.connect(lambda: self.editor.exec())
 
         main_layout.addWidget(self.edit_button, 1)
         main_layout.addLayout(self.button_container,5)
-
 
     def _clear_buttons(self):
         while self.button_container.count():
@@ -38,20 +38,18 @@ class ProtocolStackWidget(QFrame):
             if widget is not None:
                 widget.deleteLater()
 
-    def update_buttons(self, protocol_list):
+    def load_buttons(self, protocol_list):
 
         self._clear_buttons()
 
         for protocol in reversed(protocol_list):
             btn = QPushButton(protocol)
             btn.setProperty('styleClass', 'protocol_stack_button')
-            btn.clicked.connect(lambda checked, p=protocol: self._on_protocol_clicked(p))
+            btn.clicked.connect(lambda checked, p=protocol: self.protocolSelected.emit(p))
             self.button_container.addWidget(btn)
 
-    @Slot(str)
-    def _on_protocol_clicked(self, protocol_name):
-        self.protocolSelected.emit(protocol_name)
-
+    def clear(self):
+        self._clear_buttons()
 
 class ProtocolEditorDialog(QDialog):
     stackUpdated = Signal(tuple)
@@ -87,29 +85,28 @@ class ProtocolEditorDialog(QDialog):
         self.save_button.clicked.connect(self.accept)
         self.cancel_button.clicked.connect(self.reject)
 
-    def rebuild(self, protocol_list):
+    def rebuild(self, stack):
+
+        print('rebuilding stack editor',stack)
+
         self._clear_layout()
         self.editor_container.addStretch()
 
-        reversed_indexes = range(len(protocol_list) - 1, -1, -1)
-
-        for i, protocol in zip(reversed_indexes, reversed(protocol_list)):
-            current, other = protocol
-
-            if current is None and other is None:
+        for i in range(len(stack) - 1, -1, -1):
+            node = stack[i]
+            if node.current is None and node.options is None:
                 widget = QPushButton('Add')
                 widget.clicked.connect(lambda checked, index=i: self.stackUpdated.emit((index, None)))
             else:
                 widget = QComboBox()
-                widget.addItems(other)
+                widget.addItems(node.options)
                 widget.setPlaceholderText('Select protocol')
-                if current is None:
+                if node.current is None:
                     widget.setCurrentIndex(-1)
                 else:
-                    widget.setCurrentText(current)
+                    widget.setCurrentText(node.current)
 
-                widget.currentIndexChanged.connect(
-                    lambda idx, combo=widget, index=i: self._on_protocol_selected(combo, index))
+                widget.currentIndexChanged.connect(lambda idx, combo=widget, index=i: self._on_protocol_selected(combo, index))
 
             self.editor_container.addWidget(widget)
 

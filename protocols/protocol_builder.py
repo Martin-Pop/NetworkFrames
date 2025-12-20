@@ -7,6 +7,9 @@ class PacketBuilder:
         for name, config in protocol_map.items():
             self.wrappers[name] = ProtocolWrapper(name, config)
 
+    def is_supported(self, protocol):
+        return protocol in self.wrappers
+
     def get_possible_upper_protocols(self, protocol_name: str) -> list:
         """
         Returns a list of protocol that can be encapsulated into specified protocol_name
@@ -26,7 +29,12 @@ class PacketBuilder:
         :param protocol_name: name of the protocol
         :return: list of protocol names
         """
-        return self.wrappers[protocol_name].can_be_payload_of
+
+        wrapper = self.wrappers.get(protocol_name)
+        if wrapper:
+            return wrapper.can_be_payload_of
+
+        return []
 
     def get_commutable_protocols(self, upper_name: str | None, lower_name: str | None) -> list:
         """

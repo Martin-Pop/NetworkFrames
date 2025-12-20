@@ -3,7 +3,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout, QTextEdit, QTabWidget, QLabel
 )
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 
 from gui.pages.editor_page.action_panel import ActionPanelWidget
 from gui.pages.editor_page.protocol_stack_panel import ProtocolStackWidget
@@ -11,6 +11,9 @@ from gui.pages.editor_page.editor_panel import FieldEditorWidget
 
 
 class EditorPage(QWidget):
+
+    stackUpdated = Signal(tuple)
+    stackEditorExit = Signal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -34,13 +37,9 @@ class EditorPage(QWidget):
 
         # Protocol Stack
         self.protocol_stack_widget = ProtocolStackWidget()
+        self.protocol_stack_widget.editor.stackUpdated.connect(self.stackUpdated)
+        self.protocol_stack_widget.editor.finished.connect(self.stackEditorExit)
         left_layout.addWidget(self.protocol_stack_widget,1)
-
-        # left_layout.addStretch()
-
-        # Preview
-        # self.preview_widget = PreviewOutput()
-        # left_layout.addWidget(self.preview_widget)
 
         # Info
         self.info_widget = InfoOutputWidget()
@@ -56,10 +55,11 @@ class EditorPage(QWidget):
         right_layout = QVBoxLayout(self.right_panel)
 
         # Protocol field Editor
-        self.editor = FieldEditorWidget()
-        right_layout.addWidget(self.editor)
+        self.editor_widget = FieldEditorWidget()
+        right_layout.addWidget(self.editor_widget)
 
         # setup_placeholder(self.right_panel, "Right panel")
+        self.protocol_stack_widget.protocolSelected.connect(self.editor_widget.switch_to)
 
         self.splitter.addWidget(self.left_panel)
         self.splitter.addWidget(self.right_panel)
@@ -67,8 +67,25 @@ class EditorPage(QWidget):
 
         main_layout.addWidget(self.splitter)
 
-    def load_editor(self):
-        pass
+    def clear_page(self):
+        self.protocol_stack_widget.clear()
+        self.editor_widget.clear()
+
+    def load_page(self, _id ,data):
+        self.frame_id_label.setText('Frame ID: ' + str(_id))
+
+        layers = [protocol["class_name"] for protocol in data]
+        self.protocol_stack_widget.load_buttons(layers)
+        self.editor_widget.load_editor(data)
+
+    def update_stack_editor(self, stack):
+        self.protocol_stack_widget.editor.rebuild(stack)
+
+    def update_page(self, stack, editor_data):
+        #update stack and field editor
+        self.protocol_stack_widget.load_buttons(stack)
+        self.editor_widget.update_editor(editor_data)
+
 
 class InfoOutputWidget(QTextEdit):
     def __init__(self):

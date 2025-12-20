@@ -46,10 +46,11 @@ class FrameListPanel(QTreeWidget):
         item = QTreeWidgetItem(self)
 
         def on_info_updated():
-            item.setText(0, str(frame.info['id']))
-            item.setText(1, frame.info.get('src', ''))
-            item.setText(2, frame.info.get('dst', ''))
-            item.setData(0, Qt.ItemDataRole.UserRole, frame.info['id'])
+            # item.setText(0, str(frame.info['id']))
+            # item.setText(1, frame.info.get('src', ''))
+            # item.setText(2, frame.info.get('dst', ''))
+            item.setData(0, Qt.ItemDataRole.UserRole, frame.id)
+            pass
 
         frame.infoUpdated.connect(on_info_updated)
         on_info_updated()

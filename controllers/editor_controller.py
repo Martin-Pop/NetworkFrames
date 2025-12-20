@@ -1,36 +1,58 @@
-from protocols.protocol_builder import PacketBuilder
-from utils.json_loader import load_json_from_file
-from core.protocol_stack import ProtocolStack
-
 
 class EditorController:
 
-    def __init__(self, editor_page):
+    def __init__(self, editor_page, frame_manager, protocol_stack):
 
         self._editor_page = editor_page
-        self._builder = PacketBuilder(load_json_from_file('protocol_map.json'))
+        self._frame_manager = frame_manager
+        self._protocol_stack = protocol_stack
+
+        self._current_id = None
+
 
         # protocol stack
-        self._stack = ProtocolStack(self._builder)
-        self._stack_widget = editor_page.protocol_stack_widget
-        self._stack_widget.editor.rebuild(self._stack.edited_protocol_stack)
-
-        self._stack_widget.editor.stackUpdated.connect(self._protocol_stack_updated)
-        self._stack_widget.editor.finished.connect(self._on_editor_exit)
-
+        self._editor_page.update_stack_editor(self._protocol_stack.edited_protocol_stack)
+        # self._stack_widget = editor_page.protocol_stack_widget
+        # self._stack_widget.editor_widget.rebuild(self._stack.edited_protocol_stack)
+        #
+        # # protocol editor
+        # self._protocol_editor = editor_page.editor_widget
+        #
+        # self._stack_widget.editor_widget.stackUpdated.connect(self._protocol_stack_updated) #do signal chaining instead of direct connect?
+        # self._stack_widget.editor_widget.finished.connect(self._on_editor_exit)
+        self._editor_page.stackUpdated.connect(self._protocol_stack_updated)
+        self._editor_page.stackEditorExit.connect(self._on_protocol_editor_exit)
 
     def _protocol_stack_updated(self, t):
-        self._stack.update_stack(t)
-        self._stack_widget.editor.rebuild(self._stack.edited_protocol_stack)
+        self._protocol_stack.update(t)
+        self._editor_page.update_stack_editor(self._protocol_stack.edited_protocol_stack)
 
-    def _on_editor_exit(self, code):
+    def _on_protocol_editor_exit(self, code):
         if code == 1:
-            self._stack.save()
-            self._stack_widget.update_buttons(self._stack.protocol_stack)
+            self._protocol_stack.save()
+            frame = self._frame_manager.get_frame(self._current_id)
+            frame.sync_layers(self._protocol_stack.protocol_stack)
+            self._editor_page.update_page(self._protocol_stack.protocol_stack, frame.prepare_data_for_editor())
         else:
-            self._stack.revert()
-            self._stack_widget.editor.rebuild(self._stack.edited_protocol_stack)
+            self._protocol_stack.revert()
+            self._editor_page.update_stack_editor(self._protocol_stack.edited_protocol_stack)
 
     def open(self, _id):
-        print('opening id:', _id)
 
+        if self._current_id:
+            #save?
+            self._editor_page.clear_page()
+            self._protocol_stack.clear()
+
+        frame = self._frame_manager.get_frame(_id)
+
+        print(_id, frame)
+        data = frame.prepare_data_for_editor()
+        print(data)
+        layers = [protocol["class_name"] for protocol in data]
+
+        self._protocol_stack.load(layers)
+        self._editor_page.load_page(_id, data)
+        self._editor_page.update_stack_editor(self._protocol_stack.edited_protocol_stack)
+        self._protocol_stack.save()
+        self._current_id = _id
