@@ -1,7 +1,6 @@
 import scapy.all as scapy_all
 from scapy.fields import EnumField, FlagsField, MultiEnumField, BitField
 from PySide6.QtCore import QObject, Signal
-from scapy.layers.l2 import Ether
 
 
 class NetworkFrame(QObject):
@@ -61,6 +60,17 @@ class NetworkFrame(QObject):
 
         self._scapy_edited_object = new_packet
 
+    def prepare_layers(self):
+        layers = []
+        frame = self._scapy_edited_object
+
+        if frame is None:
+            return layers
+
+        for i in range(len(frame.layers())):
+            layers.append(frame.getlayer(i))
+
+        return layers
 
     def prepare_data_for_editor(self):
         structure = []

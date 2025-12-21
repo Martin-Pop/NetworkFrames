@@ -71,20 +71,23 @@ class EditorPage(QWidget):
         self.protocol_stack_widget.clear()
         self.editor_widget.clear()
 
-    def load_page(self, _id ,data):
+    def load_page(self, _id , layers, cls_names):
         self.frame_id_label.setText('Frame ID: ' + str(_id))
 
-        layers = [protocol["class_name"] for protocol in data]
-        self.protocol_stack_widget.load_buttons(layers)
-        self.editor_widget.load_editor(data)
+        # layers = [protocol["class_name"] for protocol in data]
+        # self.protocol_stack_widget.load_buttons(layers)
+        # self.editor_widget.load_editor(data)
+
+        self.protocol_stack_widget.load_buttons(cls_names)
+        self.editor_widget.load_editor2(layers)
 
     def update_stack_editor(self, stack):
         self.protocol_stack_widget.editor.rebuild(stack)
 
-    def update_page(self, stack, editor_data):
+    def update_page(self, stack, layers):
         #update stack and field editor
         self.protocol_stack_widget.load_buttons(stack)
-        self.editor_widget.update_editor(editor_data)
+        self.editor_widget.update_editor2(layers)
 
 
 class InfoOutputWidget(QTextEdit):
