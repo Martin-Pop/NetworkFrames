@@ -1,4 +1,6 @@
 import scapy.all as scapy_all
+from scapy.layers.inet import IP
+from scapy.layers.inet6 import IPv6
 from scapy.fields import EnumField, FlagsField, MultiEnumField, BitField
 from PySide6.QtCore import QObject, Signal
 
@@ -9,10 +11,11 @@ class NetworkFrame(QObject):
 
     def __init__(self, _id, scapy_obj=None):
         super().__init__()
+        self._info = {}
         self._id = _id
         self._scapy_object = scapy_obj
 
-        self.update_info()
+        self._update_info()
 
     @property
     def id(self):
@@ -22,8 +25,31 @@ class NetworkFrame(QObject):
     def scapy(self):
         return self._scapy_object
 
-    def update_info(self):
+    def _update_info(self):
+
+        if self._scapy_object:
+            if IP in self._scapy_object:
+                src, dst = str(self._scapy_object[IP].src), str(self._scapy_object[IP].dst)
+            elif IPv6 in self._scapy_object:
+                src, dst = str(self._scapy_object[IPv6].src), str(self._scapy_object[IPv6].dst)
+            else:
+                src, dst = "",""
+            protocol = self._scapy_object.lastlayer().name
+        else:
+            src, dst, protocol = "", "", ""
+
+        self._info = {
+            "id": str(self._id),
+            "src_ip": src,
+            "dst_ip": dst,
+            "protocol": protocol
+        }
+
         self.infoUpdated.emit()
+
+    def get_info(self):
+        return self._info
+
 
     def sync_layers(self, stack):
 
@@ -97,6 +123,7 @@ class NetworkFrame(QObject):
                 print(f"Error creating layer{class_name}: {e}")
 
         self._scapy_object = packet
+        self._update_info()
 
 class FrameManager:
 

@@ -25,8 +25,11 @@ class MainWindow(QMainWindow):
         control_layout = QHBoxLayout(control_bar)
 
         self.btn_frames = QPushButton("Frames")
+        self.btn_frames.setFixedWidth(80)
         self.btn_editor = QPushButton("Editor")
+        self.btn_editor.setFixedWidth(80)
         self.btn_settings = QPushButton("Settings")
+        self.btn_settings.setFixedWidth(80)
 
         self.editor_page =  EditorPage() #self._create_page("--editor--")
 
