@@ -2,7 +2,12 @@ from PySide6.QtWidgets import (
     QWidget, QHBoxLayout,QPushButton, QSizePolicy
 )
 
+from PySide6.QtCore import Qt, Signal
+
 class ActionPanelWidget(QWidget):
+
+    saveActivated = Signal()
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -13,6 +18,8 @@ class ActionPanelWidget(QWidget):
         self.btn_save = QPushButton("Save")
         self.btn_validate = QPushButton("Validate")
         self.btn_exit = QPushButton("Exit")
+
+        self.btn_save.clicked.connect(self.saveActivated)
 
         for btn in (self.btn_save, self.btn_validate, self.btn_exit):
             btn.setProperty('styleClass', 'common_button')

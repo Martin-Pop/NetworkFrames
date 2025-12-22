@@ -15,6 +15,8 @@ class EditorPage(QWidget):
     stackUpdated = Signal(tuple)
     stackEditorExit = Signal(int)
 
+    saveActivated = Signal()
+
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -47,6 +49,7 @@ class EditorPage(QWidget):
 
         # Action buttons
         self.action_panel_widget = ActionPanelWidget()
+        self.action_panel_widget.saveActivated.connect(self.saveActivated)
         left_layout.addWidget(self.action_panel_widget)
 
         self.right_panel = QWidget()
@@ -74,12 +77,8 @@ class EditorPage(QWidget):
     def load_page(self, _id , layers, cls_names):
         self.frame_id_label.setText('Frame ID: ' + str(_id))
 
-        # layers = [protocol["class_name"] for protocol in data]
-        # self.protocol_stack_widget.load_buttons(layers)
-        # self.editor_widget.load_editor(data)
-
         self.protocol_stack_widget.load_buttons(cls_names)
-        self.editor_widget.load_editor2(layers)
+        self.editor_widget.load_editor(layers)
 
     def update_stack_editor(self, stack):
         self.protocol_stack_widget.editor.rebuild(stack)
@@ -87,7 +86,10 @@ class EditorPage(QWidget):
     def update_page(self, stack, layers):
         #update stack and field editor
         self.protocol_stack_widget.load_buttons(stack)
-        self.editor_widget.update_editor2(layers)
+        self.editor_widget.update_editor(layers)
+
+    def get_editor_data(self):
+        return self.editor_widget.get_collected_data()
 
 
 class InfoOutputWidget(QTextEdit):

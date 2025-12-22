@@ -26,6 +26,12 @@ class ScapyFieldRow(QWidget):
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(10)
 
+        self.mid_container = QWidget(self)
+
+        self.mid_layout = QVBoxLayout(self.mid_container)
+        self.mid_layout.setContentsMargins(0, 0, 0, 0)
+        self.mid_layout.setSpacing(10)
+
         # editor
         self.editor_widget = None
 
@@ -39,7 +45,7 @@ class ScapyFieldRow(QWidget):
         self.bin_display = QLineEdit()
         self.bin_display.setPlaceholderText("BIN")
         self.bin_display.setReadOnly(True)
-        self.bin_display.setFixedWidth(120)
+        # self.bin_display.setFixedWidth(120)
         #self.bin_display.setStyleSheet("QLineEdit { background-color: #f0f0f0; color: #555; }")
 
         # size label
@@ -51,8 +57,10 @@ class ScapyFieldRow(QWidget):
         # factory
         self._init_editor_by_type()
 
+        self.mid_layout.addWidget(self.bin_display)
+
+        self.layout.addWidget(self.mid_container)
         self.layout.addWidget(self.hex_display)
-        self.layout.addWidget(self.bin_display)
         self.layout.addWidget(self.size_label)
 
     def get_value(self):
@@ -63,7 +71,7 @@ class ScapyFieldRow(QWidget):
             return int(self.editor_widget.value())
         elif isinstance(self.editor_widget, QLineEdit):  # String/IP
             return self.editor_widget.text()
-        elif hasattr(self, "_get_flags_value"):  # Flags Custom method
+        elif isinstance(self.editor_widget, QGroupBox):  # Flags Custom method
             return self._get_flags_value()
         return self.current_val  # Fallback
 
@@ -107,7 +115,7 @@ class ScapyFieldRow(QWidget):
 
         self.editor_widget.valueChanged.connect(self._update_from_int)
 
-        self.layout.insertWidget(0, self.editor_widget, 1)
+        self.mid_layout.insertWidget(0, self.editor_widget, 1)
         self._update_from_int(self.editor_widget.value())
 
     def _setup_enum(self, f, val):
@@ -128,7 +136,7 @@ class ScapyFieldRow(QWidget):
 
         self.editor_widget.currentIndexChanged.connect(lambda: self._update_from_int(self.editor_widget.currentData()))
 
-        self.layout.insertWidget(0, self.editor_widget, 1)
+        self.mid_layout.insertWidget(0, self.editor_widget)
         self._update_from_int(self.editor_widget.currentData())
 
     def _setup_flags(self, f, val):
@@ -154,7 +162,7 @@ class ScapyFieldRow(QWidget):
             self.checkboxes.append(chk)
             self.flags_layout.addWidget(chk, i // 2, i % 2)  # 2 columns
 
-        self.layout.insertWidget(0, self.editor_widget, 1)
+        self.mid_layout.insertWidget(0, self.editor_widget)
         self._update_from_flags()
 
     def _setup_string(self, f, val):
@@ -170,7 +178,7 @@ class ScapyFieldRow(QWidget):
 
         self.editor_widget.textChanged.connect(self._update_from_string)
 
-        self.layout.insertWidget(0, self.editor_widget, 1)
+        self.mid_layout.insertWidget(0, self.editor_widget)
         self._update_from_string(txt)
 
     def _setup_readonly(self, f, val):
@@ -184,7 +192,7 @@ class ScapyFieldRow(QWidget):
             repr_val = "None"
         self.editor_widget = QLabel(repr_val)
         self.editor_widget.setStyleSheet("color: gray; font-style: italic;")
-        self.layout.insertWidget(0, self.editor_widget, 1)
+        self.mid_layout.insertWidget(0, self.editor_widget)
 
         self.hex_display.setText("-")
         self.bin_display.setText("-")
@@ -275,26 +283,17 @@ class FieldEditorWidget(QWidget):
         for name in to_remove:
             self.remove_protocol_page(name)
 
-    def load_editor(self, data):
-        print('loading editor with', data)
-        for d in data:
-            self.create_protocol_page(d["class_name"], d["layer_name"], d["fields"])
-
-    def update_editor(self, editor_data):
-        self.clear()
-        self.load_editor(editor_data)
-
-    def load_editor2(self, layers):
+    def load_editor(self, layers):
         for layer in layers:
-            self.create_protocol_page2(layer)
+            self.create_protocol_page(layer)
 
-    def update_editor2(self, layers):
+    def update_editor(self, layers):
         for layer in layers:
             if layer.name not in self.pages:
-                self.create_protocol_page2(layer)
+                self.create_protocol_page(layer)
 
 
-    def create_protocol_page2(self, layer):
+    def create_protocol_page(self, layer):
 
         layer_name = layer.name
         cls_name = layer.__class__.__name__
@@ -337,111 +336,6 @@ class FieldEditorWidget(QWidget):
         self.stack.addWidget(scroll_area)
         self.pages[cls_name] = scroll_area
 
-    def create_protocol_page(self, protocol_name, display_name, fields_data):
-        print('protocol_name', protocol_name)
-        if protocol_name in self.pages:
-            self.remove_protocol_page(protocol_name)
-
-        # Scroll
-        scroll_area = QScrollArea()
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setFrameShape(QFrame.Shape.NoFrame)
-
-        #Container
-        content_widget = QWidget()
-        form_layout = QFormLayout(content_widget)
-        form_layout.setContentsMargins(10, 10, 10, 10)
-        form_layout.setSpacing(15)
-
-        #itle
-        title = QLabel(display_name)
-        title.setStyleSheet("font-weight: bold; font-size: 16px; color: #333; margin-bottom: 10px;")
-        form_layout.addRow(title)
-
-        for field in fields_data:
-            f_name = field.get("name", "Unknown")
-            f_value = field.get("value")
-            f_display = field.get("display_value", "")
-            f_type = field.get("type", "text")
-            f_options = field.get("options")
-
-            label = QLabel(f_name)
-            widget = None
-
-            # Dropdown
-            if f_type == "dropdown" and f_options:
-                widget = QComboBox()
-                for val, text in f_options.items():
-                    # save as userData
-                    widget.addItem(str(text), val)
-
-                index = widget.findData(f_value)
-                if index >= 0:
-                    widget.setCurrentIndex(index)
-                else:
-                    # unknown?
-                    widget.addItem(f"Unknown ({f_value})", f_value)
-                    widget.setCurrentIndex(widget.count() - 1)
-
-            # 2. FLAGS
-            elif f_type == "flags" and isinstance(f_options, list):
-                # scapy flag fields returns int
-                widget = QGroupBox()
-                widget.setStyleSheet("QGroupBox { border: none; }")
-                flag_layout = QGridLayout(widget)
-                flag_layout.setContentsMargins(0, 0, 0, 0)
-
-                current_flags_int = int(f_value) if f_value is not None else 0
-
-                # checkboxes
-                for i, flag_name in enumerate(f_options):
-                    chk = QCheckBox(flag_name)
-
-                    mask = 1 << i
-                    if current_flags_int & mask:
-                        chk.setChecked(True)
-
-                    # Layout (3next to each other)
-                    flag_layout.addWidget(chk, i // 3, i % 3)
-
-            # NUM
-            elif f_type == "number":
-                widget = QSpinBox()
-                widget.setRange(0, 2147483647)
-                try:
-                    widget.setValue(int(f_value))
-                except (ValueError, TypeError):
-                    widget.setValue(0)
-
-            # IP
-            elif f_type == "ip":
-                widget = QLineEdit()
-                widget.setText(str(f_display))
-                # widget.setInputMask("000.000.000.000;_")
-
-            # MAC
-            elif f_type == "mac":
-                widget = QLineEdit()
-                widget.setText(str(f_display))
-                # widget.setInputMask("HH:HH:HH:HH:HH:HH;_")
-
-            # Fallback
-            else:
-                widget = QLineEdit()
-                widget.setText(str(f_display))
-                widget.setPlaceholderText(str(f_value))
-
-            widget.setProperty("field_name", f_name)
-            widget.setProperty("field_type", f_type)
-
-            form_layout.addRow(label, widget)
-
-        scroll_area.setWidget(content_widget)
-        self.stack.addWidget(scroll_area)
-        self.pages[protocol_name] = scroll_area
-
-        print(f"Page for '{protocol_name}' created.")
-
     def switch_to(self, protocol_name):
 
         print('SWITCHING TO', protocol_name)
@@ -464,3 +358,40 @@ class FieldEditorWidget(QWidget):
             self.stack.removeWidget(widget)
             widget.deleteLater()
             del self.pages[protocol_name]
+
+    def get_collected_data(self):
+
+        collected_layers = []
+
+        for layer_name, scroll_area in self.pages.items():
+            if layer_name == 'None':
+                continue
+
+            layer_data = {
+                "layer_class": layer_name,
+                "fields": {}
+            }
+
+            content_widget = scroll_area.widget()
+            if not content_widget:
+                continue
+
+            layout = content_widget.layout()
+            if not layout:
+                continue
+
+            for i in range(layout.count()):
+                item = layout.itemAt(i)
+                widget = item.widget()
+
+                if widget and isinstance(widget, QWidget):
+                    scapy_row = widget.findChild(ScapyFieldRow)
+
+                    if scapy_row:
+                        field_name = scapy_row.field_desc.name
+                        value = scapy_row.get_value()
+                        layer_data["fields"][field_name] = value
+
+            collected_layers.append(layer_data)
+
+        return collected_layers

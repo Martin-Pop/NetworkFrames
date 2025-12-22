@@ -11,7 +11,6 @@ class NetworkFrame(QObject):
         super().__init__()
         self._id = _id
         self._scapy_object = scapy_obj
-        self._scapy_edited_object = scapy_obj
 
         self.update_info()
 
@@ -29,7 +28,7 @@ class NetworkFrame(QObject):
     def sync_layers(self, stack):
 
         if not stack:
-            self._scapy_edited_object = None
+            self._scapy_object = None
             return
 
         new_packet = None
@@ -43,8 +42,8 @@ class NetworkFrame(QObject):
 
             layer_instance = None
 
-            if self._scapy_edited_object:
-                found_layer = self._scapy_edited_object.getlayer(layer_cls)
+            if self._scapy_object:
+                found_layer = self._scapy_object.getlayer(layer_cls)
 
                 if found_layer:
                     layer_instance = found_layer.copy()
@@ -58,11 +57,11 @@ class NetworkFrame(QObject):
             else:
                 new_packet = new_packet / layer_instance
 
-        self._scapy_edited_object = new_packet
+        self._scapy_object = new_packet
 
     def prepare_layers(self):
         layers = []
-        frame = self._scapy_edited_object
+        frame = self._scapy_object
 
         if frame is None:
             return layers
@@ -72,55 +71,32 @@ class NetworkFrame(QObject):
 
         return layers
 
-    def prepare_data_for_editor(self):
-        structure = []
-        frame = self._scapy_edited_object
+    def reconstruct_scapy(self,editor_data):
 
-        if frame is None:
-            return []
+        packet = None
 
-        for i in range(len(frame.layers())):
-            layer = frame.getlayer(i)
+        for layer_info in editor_data:
+            class_name = layer_info['layer_class']
+            fields = layer_info['fields']
 
-            data = {
-                "class_name": layer.__class__.__name__,
-                "layer_name": layer.name,
-                "fields": []
-            }
+            try:
+                layer_cls = getattr(scapy_all, class_name, None)
 
-            for f in layer.fields_desc:
-                val = layer.getfieldval(f.name)
+                if layer_cls:
 
-                field_info = {
-                    "name": f.name,
-                    "value": val,
-                    "display_value": f.i2repr(layer, val),
-                    "type": "text",
-                    "options": None
-                }
+                    new_layer = layer_cls(**fields)
 
-                if isinstance(f, (EnumField, MultiEnumField)):
-                    field_info["type"] = "dropdown"
-                    field_info["options"] = getattr(f, "i2s", {})
+                    if packet is None:
+                        packet = new_layer
+                    else:
+                        packet = packet / new_layer
+                else:
+                    print(f"Warning unknown class:{class_name}")
 
-                elif isinstance(f, FlagsField):
-                    field_info["type"] = "flags"
-                    field_info["options"] = f.names
+            except Exception as e:
+                print(f"Error creating layer{class_name}: {e}")
 
-                elif isinstance(f, BitField) or "Int" in f.__class__.__name__:
-                    field_info["type"] = "number"
-
-                elif "IPField" in f.__class__.__name__:
-                    field_info["type"] = "ip"
-
-                elif "MACField" in f.__class__.__name__:
-                    field_info["type"] = "mac"
-
-                data["fields"].append(field_info)
-
-            structure.append(data)
-
-        return structure
+        self._scapy_object = packet
 
 class FrameManager:
 

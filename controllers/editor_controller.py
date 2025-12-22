@@ -12,16 +12,16 @@ class EditorController:
 
         # protocol stack
         self._editor_page.update_stack_editor(self._protocol_stack.edited_protocol_stack)
-        # self._stack_widget = editor_page.protocol_stack_widget
-        # self._stack_widget.editor_widget.rebuild(self._stack.edited_protocol_stack)
-        #
-        # # protocol editor
-        # self._protocol_editor = editor_page.editor_widget
-        #
-        # self._stack_widget.editor_widget.stackUpdated.connect(self._protocol_stack_updated) #do signal chaining instead of direct connect?
-        # self._stack_widget.editor_widget.finished.connect(self._on_editor_exit)
         self._editor_page.stackUpdated.connect(self._protocol_stack_updated)
         self._editor_page.stackEditorExit.connect(self._on_protocol_editor_exit)
+        self._editor_page.saveActivated.connect(self._save_editor)
+
+    def _save_editor(self):
+        data = self._editor_page.get_editor_data()
+        frame = self._frame_manager.get_frame(self._current_id)
+        frame.reconstruct_scapy(data)
+
+        print(frame.scapy.show())
 
     def _protocol_stack_updated(self, t):
         self._protocol_stack.update(t)
@@ -47,16 +47,9 @@ class EditorController:
 
         frame = self._frame_manager.get_frame(_id)
 
-        # print(_id, frame)
-        # data = frame.prepare_data_for_editor()
-        # print(data)
-        # layers = [protocol["class_name"] for protocol in data]
-
         layers = frame.prepare_layers()
         cls_names = [layer.__class__.__name__ for layer in layers]
 
-        # self._protocol_stack.load(layers)
-        # self._editor_page.load_page(_id, data)
         self._protocol_stack.load(cls_names)
         self._editor_page.load_page(_id, layers, cls_names)
         self._editor_page.update_stack_editor(self._protocol_stack.edited_protocol_stack)
