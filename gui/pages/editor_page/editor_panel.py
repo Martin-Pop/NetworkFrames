@@ -65,7 +65,7 @@ class ScapyFieldRow(QWidget):
 
     def get_value(self):
         """Returns the value from the main editor."""
-        if hasattr(self.editor_widget, "currentData"):  # ComboBox?
+        if hasattr(self.editor_widget, "currentData"):  # Prob unused now
             return self.editor_widget.currentData()
         elif hasattr(self.editor_widget, "value"):  # SpinBox
             return int(self.editor_widget.value())
@@ -204,7 +204,7 @@ class ScapyFieldRow(QWidget):
         self._update_from_flags()
 
     def _setup_string(self, f, val):
-        print('SETING UP STRING for: ', f, val)
+        #TODO: add validation
         self.editor_widget = QLineEdit()
         txt = ""
         if val is not None:

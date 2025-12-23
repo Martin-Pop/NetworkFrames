@@ -51,9 +51,12 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(control_bar)
         main_layout.addWidget(self.stacked_widget)
 
-        self.btn_frames.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(0))
-        self.btn_editor.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(1))
-        self.btn_settings.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(2))
+        self.btn_frames.clicked.connect(lambda: self.switch_to_index(0))
+        self.btn_editor.clicked.connect(lambda: self.switch_to_index(1))
+        self.btn_settings.clicked.connect(lambda: self.switch_to_index(2))
+
+    def switch_to_index(self, index):
+        self.stacked_widget.setCurrentIndex(index)
 
     def _create_page(self, title):
         page = QWidget()

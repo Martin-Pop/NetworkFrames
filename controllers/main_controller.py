@@ -1,4 +1,4 @@
-from PySide6.QtCore import QObject
+from PySide6.QtCore import QObject, Qt, Signal
 
 from controllers.editor_controller import EditorController
 from controllers.frame_page_controller import FramePageController
@@ -26,4 +26,14 @@ class MainController(QObject):
         self._editor_controller = EditorController(self._window.editor_page, self._frame_manager, self._protocol_stack)
         self._frame_page_controller = FramePageController(self._window.frame_page, self._frame_manager)
 
-        self._frame_page_controller.onFrameSelected.connect(lambda _id: self._editor_controller.open(_id))
+
+        self._frame_page_controller.onFrameSelected.connect(self._on_editor_open)
+        self._editor_controller.editorClosed.connect(self._on_editor_close)
+
+
+    def _on_editor_open(self, _id):
+        self._editor_controller.open(_id)
+        self._window.switch_to_index(1)
+
+    def _on_editor_close(self):
+        self._window.switch_to_index(0)

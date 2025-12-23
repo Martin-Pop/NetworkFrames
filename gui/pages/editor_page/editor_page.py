@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (
     QWidget, QHBoxLayout, QSplitter,
-    QVBoxLayout, QTextEdit, QTabWidget, QLabel
+    QVBoxLayout, QTextEdit, QTabWidget, QLabel, QStackedWidget
 )
 
 from PySide6.QtCore import Qt, Signal
@@ -10,17 +10,20 @@ from gui.pages.editor_page.protocol_stack_panel import ProtocolStackWidget
 from gui.pages.editor_page.editor_panel import FieldEditorWidget
 
 
-class EditorPage(QWidget):
+class EditorPage(QStackedWidget):
 
     stackUpdated = Signal(tuple)
     stackEditorExit = Signal(int)
 
     saveActivated = Signal()
+    exitActivated = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        main_layout = QHBoxLayout(self)
+        #main page
+        self.main_widget = QWidget()
+        main_layout = QHBoxLayout(self.main_widget)
         main_layout.setContentsMargins(0, 0, 0, 0)
 
         self.splitter = QSplitter(Qt.Orientation.Horizontal)
@@ -50,6 +53,7 @@ class EditorPage(QWidget):
         # Action buttons
         self.action_panel_widget = ActionPanelWidget()
         self.action_panel_widget.saveActivated.connect(self.saveActivated)
+        self.action_panel_widget.exitActivated.connect(self.exitActivated)
         left_layout.addWidget(self.action_panel_widget)
 
         self.right_panel = QWidget()
@@ -69,6 +73,19 @@ class EditorPage(QWidget):
         self.splitter.setSizes([200, 300])
 
         main_layout.addWidget(self.splitter)
+
+        #empty page (no frame selected)
+        self.empty_widget = QWidget()
+        empty_layout = QVBoxLayout(self.empty_widget)
+        empty_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        empty_label = QLabel("NOTHIN SELECTED")
+        empty_label.setObjectName("empty_label")
+        empty_layout.addWidget(empty_label)
+
+        self.addWidget(self.empty_widget) # index 0
+        self.addWidget(self.main_widget) # index 1
+
+        self.setCurrentIndex(0) # empty default
 
     def clear_page(self):
         self.protocol_stack_widget.clear()
@@ -90,6 +107,12 @@ class EditorPage(QWidget):
 
     def get_editor_data(self):
         return self.editor_widget.get_collected_data()
+
+    def switch(self, on):
+        if on:
+            self.setCurrentIndex(1)
+        else:
+            self.setCurrentIndex(0)
 
 
 class InfoOutputWidget(QTextEdit):

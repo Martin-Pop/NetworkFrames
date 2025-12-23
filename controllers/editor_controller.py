@@ -1,7 +1,12 @@
+from PySide6.QtCore import Signal, QObject
 from scapy.compat import raw
-class EditorController:
+
+class EditorController(QObject):
+
+    editorClosed = Signal()
 
     def __init__(self, editor_page, frame_manager, protocol_stack):
+        super().__init__()
 
         self._editor_page = editor_page
         self._frame_manager = frame_manager
@@ -9,12 +14,12 @@ class EditorController:
 
         self._current_id = None
 
-
         # protocol stack
         self._editor_page.update_stack_editor(self._protocol_stack.edited_protocol_stack)
         self._editor_page.stackUpdated.connect(self._protocol_stack_updated)
         self._editor_page.stackEditorExit.connect(self._on_protocol_editor_exit)
         self._editor_page.saveActivated.connect(self._save_editor)
+        self._editor_page.exitActivated.connect(self._close_editor)
 
     def _save_editor(self):
         data = self._editor_page.get_editor_data()
@@ -22,6 +27,10 @@ class EditorController:
         frame.reconstruct_scapy(data)
         raw(frame.scapy)
         print(frame.scapy.show())
+
+    def _close_editor(self):
+        self._editor_page.switch(False)
+        self.editorClosed.emit()
 
     def _protocol_stack_updated(self, t):
         self._protocol_stack.update(t)
@@ -55,3 +64,5 @@ class EditorController:
         self._editor_page.update_stack_editor(self._protocol_stack.edited_protocol_stack)
         self._protocol_stack.save()
         self._current_id = _id
+
+        self._editor_page.switch(True)
