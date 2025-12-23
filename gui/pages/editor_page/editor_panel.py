@@ -52,7 +52,7 @@ class ScapyFieldRow(QWidget):
         size_str = self._get_size_string(field_desc)
         self.size_label = QLabel(size_str)
         # self.size_label.setStyleSheet("color: #888; font-size: 10px;")
-        self.size_label.setFixedWidth(50)
+        # self.size_label.setFixedWidth(75)
 
         # factory
         self._init_editor_by_type()
@@ -65,7 +65,7 @@ class ScapyFieldRow(QWidget):
 
     def get_value(self):
         """Returns the value from the main editor."""
-        if hasattr(self.editor_widget, "currentData"):  # ComboBox
+        if hasattr(self.editor_widget, "currentData"):  # ComboBox?
             return self.editor_widget.currentData()
         elif hasattr(self.editor_widget, "value"):  # SpinBox
             return int(self.editor_widget.value())
@@ -80,6 +80,8 @@ class ScapyFieldRow(QWidget):
     def _init_editor_by_type(self):
         f = self.field_desc
         val = self.current_val
+
+        print(f.name ,type(f), val)
 
         #remove emph wrapper
         if isinstance(f, Emph):
@@ -109,7 +111,7 @@ class ScapyFieldRow(QWidget):
     def _setup_number(self, f, val):
         self.editor_widget = QDoubleSpinBox()
         self.editor_widget.setDecimals(0)
-        self.editor_widget.setRange(0, 2 ** 64)
+        self.editor_widget.setRange(0, self._get_max_value(f))
         self.editor_widget.setGroupSeparatorShown(False)
         self.editor_widget.setValue(int(val) if val is not None else 0)
 
@@ -119,25 +121,61 @@ class ScapyFieldRow(QWidget):
         self._update_from_int(self.editor_widget.value())
 
     def _setup_enum(self, f, val):
-        self.editor_widget = QComboBox()
+
+        container = QWidget()
+        container_layout = QHBoxLayout(container)
+        container_layout.setContentsMargins(0, 0, 0, 0)
+        container_layout.setSpacing(5)
+
         options = getattr(f, "i2s", {})
 
-        safe_val = val if val is not None else 0
+        max_val = self._get_max_value(f)
 
+        spin_widget = QSpinBox()
+        spin_widget.setRange(0, max_val)
+        current_int = int(val) if val is not None else 0
+        spin_widget.setValue(current_int)
+
+        self.editor_widget = spin_widget #make spinbox main
+
+        # combobox helper
+        combo_widget = QComboBox()
+        combo_widget.addItem("Custom / Unknown", -1) #index 0
+
+
+        #sorted_options = sorted(options.items(), key=lambda item: item[0])
         for v, name in options.items():
-            self.editor_widget.addItem(f"{name} ({v})", v)
+            combo_widget.addItem(f"{name} ({v})", v)
 
-        idx = self.editor_widget.findData(safe_val)
-        if idx >= 0:
-            self.editor_widget.setCurrentIndex(idx)
-        else:
-            self.editor_widget.addItem(f"Unknown ({safe_val})", safe_val)
-            self.editor_widget.setCurrentIndex(self.editor_widget.count() - 1)
+        #sync
+        def on_combo_changed(idx):
+            data = combo_widget.currentData()
+            if data != -1:  #ignore -1 (unknown/custom)
+                spin_widget.blockSignals(True)
+                spin_widget.setValue(int(data))
+                spin_widget.blockSignals(False)
+                self._update_from_int(data)
 
-        self.editor_widget.currentIndexChanged.connect(lambda: self._update_from_int(self.editor_widget.currentData()))
+        def on_spin_changed(val):
+            idx = combo_widget.findData(val)
+            combo_widget.blockSignals(True)
+            if idx >= 0:
+                combo_widget.setCurrentIndex(idx)
+            else:
+                combo_widget.setCurrentIndex(0) # unknown / custom
+            combo_widget.blockSignals(False)
 
-        self.mid_layout.insertWidget(0, self.editor_widget)
-        self._update_from_int(self.editor_widget.currentData())
+            self._update_from_int(val)
+
+        combo_widget.currentIndexChanged.connect(on_combo_changed)
+        spin_widget.valueChanged.connect(on_spin_changed)
+        on_spin_changed(current_int)
+
+        container_layout.addWidget(spin_widget, 1)
+        container_layout.addWidget(combo_widget, 1)
+
+        self.mid_layout.insertWidget(0, container)
+        self._update_from_int(current_int)
 
     def _setup_flags(self, f, val):
         # Container for checkboxes
@@ -226,7 +264,7 @@ class ScapyFieldRow(QWidget):
             b = text.encode('utf-8')
             h = b.hex().upper()
             self.hex_display.setText(h)
-            self.bin_display.setText(f"Len: {len(b)}")  # Bin for string too long
+            self.bin_display.setText(f"-")  # Bin for string too long
         except:
             self.hex_display.setText("Err")
 
@@ -252,6 +290,16 @@ class ScapyFieldRow(QWidget):
             return f"{f.sz} bytes"
 
         return "Var"  # fallback
+
+    def _get_max_value(self, f):
+
+        if isinstance(f, BitField):
+            return (2 ** f.size) - 1
+
+        if hasattr(f, "sz"):
+            return (2 ** (f.sz * 8)) - 1
+
+        return (2 ** 64) - 1
 
 
 class FieldEditorWidget(QWidget):

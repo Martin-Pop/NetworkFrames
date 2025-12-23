@@ -1,7 +1,7 @@
 import scapy.all as scapy_all
 from scapy.layers.inet import IP
 from scapy.layers.inet6 import IPv6
-from scapy.fields import EnumField, FlagsField, MultiEnumField, BitField
+from scapy.fields import RawVal
 from PySide6.QtCore import QObject, Signal
 
 
@@ -97,30 +97,57 @@ class NetworkFrame(QObject):
 
         return layers
 
-    def reconstruct_scapy(self,editor_data):
-
+    def reconstruct_scapy(self, editor_data):
+        print("EDITOR DATA: ", editor_data)
         packet = None
 
         for layer_info in editor_data:
             class_name = layer_info['layer_class']
-            fields = layer_info['fields']
+            raw_fields = layer_info['fields']
 
-            try:
-                layer_cls = getattr(scapy_all, class_name, None)
+            layer_cls = getattr(scapy_all, class_name, None)
+            if not layer_cls:
+                print(f"Warning unknown class:{class_name}")
+                continue
 
-                if layer_cls:
+            final_fields = {}
 
-                    new_layer = layer_cls(**fields)
+            for key, val in raw_fields.items():
 
-                    if packet is None:
-                        packet = new_layer
+                #remove auto calculation
+                if class_name == "IP" and key in ["src", "dst"] and not val:
+                    val = "0.0.0.0"
+
+                try:
+                    #try create layer with only one field, scapy does validation,
+                    # if exception occurs use RawVal
+
+                    layer_cls(**{key: val})
+
+                    # values was valid
+                    final_fields[key] = val
+
+                except Exception:
+                    # use RawVal
+                    print(f"Field '{key}' validation failed for value '{val}'. Forcing RawVal.")
+                    if isinstance(val, str):
+                        raw_data = val.encode('utf-8')
+                    elif isinstance(val, bytes):
+                        raw_data = val
                     else:
-                        packet = packet / new_layer
+                        raw_data = str(val).encode('utf-8')
+
+                    final_fields[key] = RawVal(raw_data)
+            try:
+                new_layer = layer_cls(**final_fields)
+
+                if packet is None:
+                    packet = new_layer
                 else:
-                    print(f"Warning unknown class:{class_name}")
+                    packet = packet / new_layer
 
             except Exception as e:
-                print(f"Error creating layer{class_name}: {e}")
+                print(f"CRITICAL: Failed to create layer {class_name} even with RawVal: {e}")
 
         self._scapy_object = packet
         self._update_info()

@@ -1,4 +1,4 @@
-
+from scapy.compat import raw
 class EditorController:
 
     def __init__(self, editor_page, frame_manager, protocol_stack):
@@ -20,7 +20,7 @@ class EditorController:
         data = self._editor_page.get_editor_data()
         frame = self._frame_manager.get_frame(self._current_id)
         frame.reconstruct_scapy(data)
-
+        raw(frame.scapy)
         print(frame.scapy.show())
 
     def _protocol_stack_updated(self, t):
