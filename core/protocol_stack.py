@@ -33,11 +33,9 @@ class ProtocolStack:
 
         self.save()
 
-    def backup(self):
-        self._backup_edited_protocol_stack = self._edited_protocol_stack.copy()
 
     def save(self):
-        self.backup()
+        self._backup_edited_protocol_stack = self._edited_protocol_stack.copy()
 
         names = []
         for node in self._edited_protocol_stack:

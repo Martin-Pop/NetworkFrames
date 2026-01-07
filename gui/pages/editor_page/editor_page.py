@@ -106,9 +106,17 @@ class EditorPage(QStackedWidget):
         self.editor_widget.update_editor(layers)
 
     def get_editor_data(self):
+        """
+        Passes editors data from editor panel.
+        :return: editor data
+        """
         return self.editor_widget.get_collected_data()
 
     def switch(self, on):
+        """
+        Switches on/off -> editor is turned off when no frame is selected.
+        :param on: True to switch on, False to switch off
+        """
         if on:
             self.setCurrentIndex(1)
         else:

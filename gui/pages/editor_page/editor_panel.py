@@ -303,6 +303,9 @@ class ScapyFieldRow(QWidget):
 
 
 class FieldEditorWidget(QWidget):
+    """
+    Editor for frame's layers / protocols
+    """
 
     def __init__(self):
         super().__init__()
@@ -313,11 +316,14 @@ class FieldEditorWidget(QWidget):
         self.stack = QStackedWidget()
         main_layout.addWidget(self.stack)
 
-        self.pages = {}
+        self.pages = {} # dictionary to store editor page of the frames layers
         self._create_empty_page()
         self.switch_to('None')
 
     def _create_empty_page(self):
+        """
+        Creates an empty page used when no layer is selected.
+        """
         container = QWidget()
         layout = QVBoxLayout(container)
         label = QLabel('Please select protocol to edit')
@@ -327,21 +333,38 @@ class FieldEditorWidget(QWidget):
         self.pages['None'] = container
 
     def clear(self):
-        to_remove = [name for name in self.pages.keys() if name != 'None']
+        """
+        Calls function to remove protocol page on every layer. Empty page remains.
+        """
+        to_remove = [name for name in self.pages.keys() if name != 'None'] #necessary because _remove_protocol_page alters self.pages
         for name in to_remove:
-            self.remove_protocol_page(name)
+            self._remove_protocol_page(name)
 
     def load_editor(self, layers):
+        """
+        Calls function to create editor page for every layer. Automatically switches to empty page (no layer selected)
+        :param layers: layers to create editor page for
+        """
         for layer in layers:
-            self.create_protocol_page(layer)
+            self._create_protocol_page(layer)
 
+        self.switch_to('None')
+        
     def update_editor(self, layers):
+        """
+        Calls function to create protocol page for every layer that doesn't have one yet.
+        :param layers: layers to update editor page for
+        """
         for layer in layers:
             if layer.name not in self.pages:
-                self.create_protocol_page(layer)
+                self._create_protocol_page(layer)
 
 
-    def create_protocol_page(self, layer):
+    def _create_protocol_page(self, layer):
+        """
+        Creates editor page for specific layer. Page gets added to pages dictionary.
+        :param layer: layer to create editor page for
+        """
 
         layer_name = layer.name
         cls_name = layer.__class__.__name__
@@ -385,20 +408,18 @@ class FieldEditorWidget(QWidget):
         self.pages[cls_name] = scroll_area
 
     def switch_to(self, protocol_name):
-
-        print('SWITCHING TO', protocol_name)
-
         """
-        Switches editor page to desirable protocol
+        Switches editor page to desirable protocol / layer
         :param protocol_name: name
         """
+        print('SWITCHING TO', protocol_name)
         if protocol_name in self.pages:
             widget = self.pages[protocol_name]
             self.stack.setCurrentWidget(widget)
 
-    def remove_protocol_page(self, protocol_name):
+    def _remove_protocol_page(self, protocol_name):
         """
-        Removes protocol page from stacked widget
+        Removes protocol page for specified protocol / layer
         :param protocol_name: name
         """
         if protocol_name in self.pages:
@@ -408,6 +429,10 @@ class FieldEditorWidget(QWidget):
             del self.pages[protocol_name]
 
     def get_collected_data(self):
+        """
+        Collects data from editor.
+        :return: list of {"layer_class": <layer_name>, "fields": {<field_name> : <field_value>}}
+        """
 
         collected_layers = []
 
