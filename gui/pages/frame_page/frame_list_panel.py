@@ -26,6 +26,9 @@ class FrameListPanel(QTreeWidget):
         self.setHeaderLabels(columns)
         self.setObjectName("packet_list")
 
+        for i in range(len(columns)):
+            self.headerItem().setTextAlignment(i, Qt.AlignmentFlag.AlignCenter)
+
         self.setRootIsDecorated(False)
         self.setAlternatingRowColors(True)
         self.setFrameShape(QFrame.Shape.NoFrame)
@@ -34,11 +37,13 @@ class FrameListPanel(QTreeWidget):
         self.setUniformRowHeights(True)
 
         header = self.header()
-        header.resizeSection(0, 60)
-        header.resizeSection(1, 120)
-        header.resizeSection(4, 120)
-        header.resizeSection(5, 70)
-        header.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        header.resizeSection(0, 100)
+        header.resizeSection(1, 160)
+        header.resizeSection(2, 160)
+        header.resizeSection(3, 100)
+        header.resizeSection(4, 100)
+
+        header.setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
 
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
@@ -49,6 +54,12 @@ class FrameListPanel(QTreeWidget):
 
         item = QTreeWidgetItem(self)
 
+        for i in range(self.columnCount()):
+            if i == 5:
+               item.setTextAlignment(i, Qt.AlignmentFlag.AlignLeft)
+            else:
+                item.setTextAlignment(i, Qt.AlignmentFlag.AlignCenter)
+
         def on_info_updated():
             info = frame.get_info()
             item.setText(0, info["id"])
@@ -56,7 +67,6 @@ class FrameListPanel(QTreeWidget):
             item.setText(2, info["dst_ip"])
             item.setText(3, info["protocol"])
             item.setData(0, Qt.ItemDataRole.UserRole, frame.id)
-            pass
 
         frame.infoUpdated.connect(on_info_updated)
         on_info_updated()

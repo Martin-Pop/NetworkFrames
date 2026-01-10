@@ -1,14 +1,14 @@
 {
-    "PRIMARY": "#EF8354",
-    "PRIMARY_HOVER": "#D9774B",
+    "PRIMARY": "#4170be",
+    "PRIMARY_HOVER": "#2e4f87",
     "PRIMARY_TEXT": "#FFFFFF",
     "SECONDARY": "#4F5D75",
-    "SECONDARY_HOVER": "#384253",
+    "SECONDARY_HOVER": "#363f4f",
     "BG": "#f0f0f0",
-    "BG_SECONDARY": "#c8c8c8",
+    "BG_SECONDARY": "#e2e2e2",
     "BG_INPUT": "#FFFFFF",
-    "BG_READONLY": "#E9ECEF",
+    "BG_READONLY": "#dde2e9",
     "TEXT": "#2D3142",
-    "BORDER": "#a3a3a3",
-    "INFO_BG": "#F0F2F5"
+    "BORDER": "#444444",
+    "INFO_BG": "#dde2e9"
 }

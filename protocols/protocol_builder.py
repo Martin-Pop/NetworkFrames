@@ -10,6 +10,13 @@ class PacketBuilder:
     def is_supported(self, protocol):
         return protocol in self.wrappers
 
+    def get_info(self):
+        descriptions = {}
+        for key, value in self.wrappers.items():
+            descriptions[key] = value.fields
+
+        return descriptions
+
     def get_possible_upper_protocols(self, protocol_name: str) -> list:
         """
         Returns a list of protocol that can be encapsulated into specified protocol_name

@@ -73,7 +73,7 @@ class MainWindow(QMainWindow):
         self.page_map[name] = self.stacked_widget.addWidget(page)
 
         btn = QPushButton(name.title())
-        btn.setFixedWidth(80)
+        btn.setFixedWidth(90)
         btn.setProperty("styleClass", "common_button")
         btn.setObjectName(name+'_button')
         btn.clicked.connect(lambda: self.switch_to(name))

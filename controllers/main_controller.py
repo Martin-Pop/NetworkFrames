@@ -24,7 +24,7 @@ class MainController(QObject):
         self._protocol_stack = ProtocolStack(self._builder)
 
         #editor controller
-        self._editor_controller = EditorController(self._window.editor_page, self._frame_manager, self._protocol_stack)
+        self._editor_controller = EditorController(self._window.editor_page, self._frame_manager,self._builder, self._protocol_stack)
         self._editor_controller.editorClosed.connect(self._on_editor_close)
 
         # frames

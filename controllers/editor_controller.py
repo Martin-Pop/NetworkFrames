@@ -7,8 +7,10 @@ class EditorController(QObject):
 
     editorClosed = Signal()
 
-    def __init__(self, editor_page, frame_manager, protocol_stack):
+    def __init__(self, editor_page, frame_manager, builder, protocol_stack):
         super().__init__()
+
+        self._descriptions = builder.get_info()
 
         self._editor_page = editor_page
         self._frame_manager = frame_manager
@@ -22,6 +24,18 @@ class EditorController(QObject):
         self._editor_page.stackEditorExit.connect(self._on_protocol_stack_editor_exit)
         self._editor_page.saveActivated.connect(self._save_editor)
         self._editor_page.exitActivated.connect(self._close_editor)
+        self._editor_page.infoRequested.connect(self._on_info_requested)
+
+    def _on_info_requested(self, layer, field, text):
+
+        try:
+            description = self._descriptions[layer][field]['description']
+        except KeyError:
+            description = None
+
+        if description:
+            text +=f"<b>Description:</b> {description}<br>"
+        self._editor_page.update_info_panel(field, text)
 
     def _save_editor(self):
         """

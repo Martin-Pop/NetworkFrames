@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (
     QWidget, QHBoxLayout, QSplitter,
-    QVBoxLayout, QTextEdit, QTabWidget, QLabel, QStackedWidget
+    QVBoxLayout, QTextEdit, QTabWidget, QLabel, QStackedWidget, QFrame
 )
 
 from PySide6.QtCore import Qt, Signal
@@ -17,6 +17,8 @@ class EditorPage(QStackedWidget):
 
     saveActivated = Signal()
     exitActivated = Signal()
+
+    infoRequested = Signal(str, str, str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -63,7 +65,7 @@ class EditorPage(QStackedWidget):
 
         # Protocol field Editor
         self.editor_widget = FieldEditorWidget()
-        self.editor_widget.fieldInfoChanged.connect(self.update_info_panel)
+        self.editor_widget.infoRequested.connect(self.infoRequested)
         right_layout.addWidget(self.editor_widget)
 
         # setup_placeholder(self.right_panel, "Right panel")
@@ -79,7 +81,7 @@ class EditorPage(QStackedWidget):
         self.empty_widget = QWidget()
         empty_layout = QVBoxLayout(self.empty_widget)
         empty_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        empty_label = QLabel("NOTHIN SELECTED")
+        empty_label = QLabel("Please select frame to use editor")
         empty_label.setObjectName("empty_label")
         empty_layout.addWidget(empty_label)
 
@@ -90,7 +92,7 @@ class EditorPage(QStackedWidget):
 
     def update_info_panel(self, title, text):
         formatted_text = f"<h3>{title}</h3><p>{text}</p>"
-        self.info_widget.setText(formatted_text)
+        self.info_widget.set_text(formatted_text)
 
     def clear_page(self):
         self.protocol_stack_widget.clear()
@@ -128,13 +130,22 @@ class EditorPage(QStackedWidget):
             self.setCurrentIndex(0)
 
 
-class InfoOutputWidget(QTextEdit):
+class InfoOutputWidget(QFrame):
     def __init__(self):
         super().__init__()
 
-        self.setReadOnly(True)
-        self.setPlaceholderText("Select something to show info")
+        layout = QVBoxLayout(self)
+
+        self._info_widget = QTextEdit()
+        self._info_widget.setReadOnly(True)
+        self._info_widget.setFrameShape(QFrame.Shape.NoFrame)
+        self._info_widget.setPlaceholderText("Select something to show info")
+        layout.addWidget(self._info_widget)
+
         self.setObjectName("info_widget")
+
+    def set_text(self, text):
+        self._info_widget.setText(text)
 
 
 class PreviewOutput(QTabWidget):

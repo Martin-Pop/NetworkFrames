@@ -22,10 +22,11 @@ class ScapyFieldRow(QWidget):
     4. Size Label (Static info)
     """
 
-    infoRequested = Signal(str, str)
+    infoRequested = Signal(str, str, str) #layer, field, text
 
-    def __init__(self, field_desc, current_val, parent=None):
+    def __init__(self, cls_name,field_desc, current_val, parent=None):
         super().__init__(parent)
+        self.cls_name = cls_name
         self.field_desc = field_desc
         self.current_val = current_val
 
@@ -87,15 +88,13 @@ class ScapyFieldRow(QWidget):
 
     def _emit_info(self):
         f = self.field_desc
-        title = f.name
-
         info_text = f"<b>Type:</b> {f.__class__.__name__}<br>"
         info_text += f"<b>Size:</b> {self._get_size_string(f)}<br>"
 
         if hasattr(f, "default"):
             info_text += f"<b>Default:</b> {f.default}<br>"
 
-        self.infoRequested.emit(title, info_text)
+        self.infoRequested.emit(self.cls_name, f.name ,info_text)
 
     def get_value(self):
         """Returns the value from the main editor."""
@@ -303,25 +302,26 @@ class ScapyFieldRow(QWidget):
     def _get_size_string(self, f):
         """
         Determines the size of the field in bits or bytes.
+        Handles fractional bytes (bits) correctly.
         """
-        # explicit size in bits
+
         if isinstance(f, BitField):
             return f"{f.size} bits"
 
-        # bytes
-        if isinstance(f, ByteField): return "1 byte"  # 8 bits
-        if isinstance(f, ShortField): return "2 bytes"  # 16 bits
-        if isinstance(f, IntField): return "4 bytes"  # 32 bits
-        if isinstance(f, LongField): return "8 bytes"  # 64 bits
-        if isinstance(f, IPField): return "4 bytes"
-        if isinstance(f, MACField): return "6 bytes"
-
-        # from sz (struct size)
         if hasattr(f, "sz"):
             size = f.sz
-            if size < 0:
-                return f"{size * 8} bits"
-            return f"{size} bytes"
+
+            if isinstance(size, float) and not size.is_integer():
+                return f"{int(size * 8)} bits"
+
+            # Je to celé číslo (např. 1, 2, 4) -> jsou to bajty
+            return f"{int(size)} bytes"
+
+        if isinstance(f, (ByteField, IPField)): return "1 byte"
+        if isinstance(f, ShortField): return "2 bytes"
+        if isinstance(f, (IntField, IPField)): return "4 bytes"
+        if isinstance(f, LongField): return "8 bytes"
+        if isinstance(f, MACField): return "6 bytes"
 
         return "Var"  # fallback
 
@@ -341,7 +341,7 @@ class FieldEditorWidget(QWidget):
     Editor for frame's layers / protocols
     """
 
-    fieldInfoChanged = Signal(str, str)  # title, text
+    infoRequested = Signal(str, str, str)  # layer name, field, text
 
     def __init__(self):
         super().__init__()
@@ -362,7 +362,8 @@ class FieldEditorWidget(QWidget):
         """
         container = QWidget()
         layout = QVBoxLayout(container)
-        label = QLabel('Please select protocol to edit')
+        label = QLabel("Select a protocol / layer to edit it's fields")
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(label)
 
         self.stack.addWidget(container)
@@ -412,6 +413,7 @@ class FieldEditorWidget(QWidget):
 
         # Container
         content_widget = QWidget()
+        content_widget.setObjectName("editor_scroll_content")
         form_layout = QFormLayout(content_widget)
         form_layout.setContentsMargins(10, 10, 10, 10)
         form_layout.setSpacing(15)
@@ -431,9 +433,9 @@ class FieldEditorWidget(QWidget):
             lbl = QLabel(f.name)
             lbl.setFixedWidth(100)
 
-            field_widget = ScapyFieldRow(f, val)
+            field_widget = ScapyFieldRow(cls_name,f, val)
 
-            field_widget.infoRequested.connect(self.fieldInfoChanged.emit)
+            field_widget.infoRequested.connect(self.infoRequested)
 
             row_layout.addWidget(lbl)
             row_layout.addWidget(field_widget)

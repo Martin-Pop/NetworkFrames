@@ -14,9 +14,8 @@ QMainWindow {
     background-color: @PRIMARY;
     color: @PRIMARY_TEXT;
     border: none;
-    border-bottom: 4px solid @PRIMARY;
     padding: 5px 12px;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: bold;
 }
 
@@ -26,7 +25,6 @@ QMainWindow {
 
 #control_bar QPushButton[selected="true"] {
     background-color: @PRIMARY_HOVER;
-    border-bottom: 4px solid @SECONDARY;
 }
 
 /* --- PROTOCOL STACK --- */
@@ -63,16 +61,16 @@ QPushButton[styleClass~='protocol_stack_button']:hover {
 }
 
 QLabel#frame_id_label {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: bold;
     color: @SECONDARY;
     padding: 5px 0;
 }
 
 /* --- INFO WIDGET --- */
-QTextEdit#info_widget {
-    background-color: @INFO_BG;
-    border: 1px solid @BORDER;
+#info_widget {
+    background-color: @BG_SECONDARY;
+
     border-radius: 4px;
     color: @TEXT;
     padding: 5px;
@@ -83,6 +81,11 @@ FieldEditorWidget QLabel {
     font-size: 16px;
     color: @SECONDARY;
     margin-bottom: 5px;
+}
+
+
+#editor_scroll_content {
+    background-color: @BG;
 }
 
 ScapyFieldRow QLabel {
@@ -164,9 +167,12 @@ QPushButton[styleClass~='common_button']:hover {
 }
 
 /* FRAME LIST */
-QTreeWidget {
-    border: 2px solid @BORDER;
+#frame_page {
+    border: 3px solid @SECONDARY;
+    border-radius: 3px;
+}
 
+QTreeWidget {
     background-color: @BG_SECONDARY;
     alternate-background-color: #BFBFBF;
     font-size: 15px;
@@ -177,8 +183,8 @@ QTreeWidget::item {
     height: 25px;
     color: @TEXT;
 
-    border-bottom: 2px solid @BORDER;
-    border-right: 2px solid @BORDER;
+    border-bottom: 1px solid @SECONDARY;
+    border-right: 1px solid @SECONDARY;
     padding-left: 5px;
 }
 
@@ -187,30 +193,25 @@ QTreeWidget::item:last {
 }
 
 QTreeWidget::item:hover:!selected {
-    background-color: #F0F0F0;
+    background-color: @PRIMARY;
 }
 
 QTreeWidget::item:selected {
     background-color: @PRIMARY;
     color: @PRIMARY_TEXT;
-    border-bottom: 2px solid @PRIMARY_HOVER;
-    border-right: 2px solid @PRIMARY_HOVER;
 }
 
 /* HEADERS */
 QHeaderView::section {
-    background-color: @BG_SECONDARY;
-    color: @SECONDARY;
+    background-color: @SECONDARY;
+    color: @PRIMARY_TEXT;
     padding: 5px;
+
+    border-right: 2px solid @BORDER;
+    border-bottom: 3px solid @BORDER;
 
     font-weight: bold;
     font-size: 15px;
-
-    border-bottom: 3px solid @SECONDARY;
-
-    border-right: 2px solid @BORDER;
-    border-top: none;
-    border-left: none;
 }
 
 QHeaderView::section:last {
@@ -241,4 +242,27 @@ QMenu::separator {
     height: 1px;
     background-color: @BORDER;
     margin: 4px 10px;
+}
+
+/* SPLITTER */
+QSplitter::handle {
+    background-color: @BG_SECONDARY;
+}
+
+QSplitter::handle:horizontal {
+    width: 4px;
+    image: none;
+}
+
+QSplitter::handle:vertical {
+    height: 4px;
+    image: none;
+}
+
+QSplitter::handle:hover {
+    background-color: @PRIMARY_HOVER;
+}
+
+QSplitter::handle:pressed {
+    background-color: @PRIMARY;
 }

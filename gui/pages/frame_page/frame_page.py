@@ -1,11 +1,11 @@
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
-    QWidget, QHBoxLayout
+    QFrame, QHBoxLayout
 )
 
 from gui.pages.frame_page.frame_list_panel import FrameListPanel
 
-class FramePage(QWidget):
+class FramePage(QFrame):
 
     frameSelected = Signal(int)  # when frame gets selected
     framesDeleted = Signal(list)  # when frames get deleted
@@ -17,6 +17,7 @@ class FramePage(QWidget):
 
         main_layout = QHBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
+        self.setObjectName('frame_page')
 
         self._frame_list_panel = FrameListPanel()
         #signal chain
