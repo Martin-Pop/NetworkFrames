@@ -5,6 +5,22 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from .pages.editor_page.editor_page import EditorPage
 from .pages.frame_page.frame_page import FramePage
+from .pages.sender_page.sender_page import SenderPage
+
+
+def _create_page(title):
+    """
+    Temporary function to create page
+    """
+    page = QWidget()
+    layout = QVBoxLayout(page)
+
+    label = QLabel(f"--- {title} ---")
+    label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+    layout.addWidget(label)
+
+    return page
 
 
 class MainWindow(QMainWindow):
@@ -18,53 +34,61 @@ class MainWindow(QMainWindow):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
 
-        main_layout = QVBoxLayout(central_widget)
-
         control_bar = QWidget()
         control_bar.setObjectName('control_bar')
-        control_layout = QHBoxLayout(control_bar)
+        self.control_layout = QHBoxLayout(control_bar)
 
-        self.btn_frames = QPushButton("Frames")
-        self.btn_frames.setFixedWidth(80)
-        self.btn_editor = QPushButton("Editor")
-        self.btn_editor.setFixedWidth(80)
-        self.btn_settings = QPushButton("Settings")
-        self.btn_settings.setFixedWidth(80)
-
-        self.editor_page =  EditorPage() #self._create_page("--editor--")
-
-        control_layout.addWidget(self.btn_frames)
-        control_layout.addWidget(self.btn_editor)
-        control_layout.addStretch()
-        control_layout.addWidget(self.btn_settings)
-
+        # pages
         self.stacked_widget = QStackedWidget()
+        self.page_map = {}
 
-        # self.ethernet_page = self._create_page("--editor--")
+        #frames
         self.frame_page = FramePage()
-        self.settings_page = self._create_page("--settings--")
+        self._init_page(self.frame_page, 'frames')
 
-        self.stacked_widget.addWidget(self.frame_page)
-        self.stacked_widget.addWidget(self.editor_page)
-        self.stacked_widget.addWidget(self.settings_page)
+        #editor
+        self.editor_page = EditorPage()
+        self._init_page(self.editor_page, 'editor')
 
+        #sender
+        self.sender_page = SenderPage()
+        self._init_page(self.sender_page, 'sender')
+
+        #receiver
+        self.receiver_page = _create_page("--receiver--")
+        self._init_page(self.receiver_page, 'receiver')
+
+        # settings
+        self.settings_page = _create_page("--settings--")
+        self.control_layout.addStretch()
+        self._init_page(self.settings_page, 'settings')
+
+        main_layout = QVBoxLayout(central_widget)
         main_layout.addWidget(control_bar)
         main_layout.addWidget(self.stacked_widget)
 
-        self.btn_frames.clicked.connect(lambda: self.switch_to_index(0))
-        self.btn_editor.clicked.connect(lambda: self.switch_to_index(1))
-        self.btn_settings.clicked.connect(lambda: self.switch_to_index(2))
+        self.switch_to('frames')
 
-    def switch_to_index(self, index):
-        self.stacked_widget.setCurrentIndex(index)
+    def _init_page(self, page, name):
+        self.page_map[name] = self.stacked_widget.addWidget(page)
 
-    def _create_page(self, title):
-        page = QWidget()
-        layout = QVBoxLayout(page)
+        btn = QPushButton(name.title())
+        btn.setFixedWidth(80)
+        btn.setProperty("styleClass", "common_button")
+        btn.setObjectName(name+'_button')
+        btn.clicked.connect(lambda: self.switch_to(name))
 
-        label = QLabel(f"--- {title} ---")
-        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.control_layout.addWidget(btn)
 
-        layout.addWidget(label)
 
-        return page
+    def switch_to(self, name: str):
+        self.stacked_widget.setCurrentIndex(self.page_map[name])
+        for i in range(self.stacked_widget.count()):
+            widget = self.control_layout.itemAt(i).widget()
+
+            if isinstance(widget, QPushButton):
+                is_selected = widget.objectName() == name + '_button'
+                widget.setProperty("selected", is_selected)
+
+                widget.style().unpolish(widget)
+                widget.style().polish(widget)

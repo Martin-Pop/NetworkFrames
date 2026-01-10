@@ -4,14 +4,22 @@ QMainWindow {
 
 #control_bar QPushButton {
     background-color: #EF8354;
-    border: none;
-    padding: 8px 15px;
-    font-size: 13px;
+    border-bottom: 3px solid #FFFFFF;
+    padding: 5px 12px;
+    font-size: 15px;
+}
+
+#control_bar QPushButton::hover {
+    background-color: #8C4C31;
+}
+
+#control_bar QPushButton[selected="true"] {
+    border-bottom: 3px solid #8C4C31;
 }
 
 QStackedWidget {
     border: 1px solid #BFC0C0;
-    background-color: #FFFFFF;
+    background-color: #C1C1C1;
 }
 
 QLabel {
@@ -21,14 +29,13 @@ QLabel {
 /* COMMON */
 * {
     font-family: Arial, sans-serif;
-    font-size: 12px;
+    font-size: 15px;
 }
 
-QPushButton[styleClass~="common_button"] {
+QPushButton[styleClass~='common_button'] {
     background-color: #EF8354;
-    padding: 8px 15px;
-    font-size: 13px;
     border-radius: 2px;
+    padding: 4px 6px;
 }
 
 
