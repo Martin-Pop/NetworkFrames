@@ -16,6 +16,7 @@ class FrameListPanel(QTreeWidget):
     frameSelected = Signal(int)  # when frame gets selected
     framesDeleted = Signal(list) # when frames get deleted
     addNewFrame = Signal(str)  # when new frame is added
+    sendRequest = Signal(int) # when to sender option is selected
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -47,7 +48,6 @@ class FrameListPanel(QTreeWidget):
 
         def on_info_updated():
             info = frame.get_info()
-            # print(info)
             item.setText(0, info["id"])
             item.setText(1, info["src_ip"])
             item.setText(2, info["dst_ip"])
@@ -88,10 +88,19 @@ class FrameListPanel(QTreeWidget):
             count = len(selected_items)
             delete_action = QAction(f"Delete Packet(s) ({count})")
             delete_action.triggered.connect(self._delete_selected_frames)
+            if count == 1:
+                to_sender_action = QAction("To Sender")
+                to_sender_action.triggered.connect(self._to_sender_action)
+                menu.addAction(to_sender_action)
 
             menu.addAction(delete_action)
 
         menu.exec(self.mapToGlobal(position))
+
+    def _to_sender_action(self):
+        item = self.selectedItems()[0]
+        pkt_id = item.data(0, Qt.ItemDataRole.UserRole)
+        self.sendRequest.emit(pkt_id)
 
     def _delete_selected_frames(self):
         """
@@ -109,8 +118,6 @@ class FrameListPanel(QTreeWidget):
 
             index = self.indexOfTopLevelItem(item)
             self.takeTopLevelItem(index)
-
-        print(f"Deleted {len(items)} of packets: {deleted_ids}")
 
         self.framesDeleted.emit(deleted_ids)
 

@@ -4,6 +4,8 @@ from PySide6.QtWidgets import (
 )
 
 from PySide6.QtCore import Qt, Signal, Slot
+import logging
+log = logging.getLogger(__name__)
 
 class ProtocolStackWidget(QFrame):
     protocolSelected = Signal(str)
@@ -87,7 +89,7 @@ class ProtocolEditorDialog(QDialog):
 
     def rebuild(self, stack):
 
-        print('rebuilding stack editor',stack)
+        log.debug('rebuilding stack editor' + str(stack))
 
         self._clear_layout()
         self.editor_container.addStretch()

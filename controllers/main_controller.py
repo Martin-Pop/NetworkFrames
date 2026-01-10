@@ -23,17 +23,45 @@ class MainController(QObject):
         self._frame_manager = FrameManager()
         self._protocol_stack = ProtocolStack(self._builder)
 
-        #controllers
+        #editor controller
         self._editor_controller = EditorController(self._window.editor_page, self._frame_manager, self._protocol_stack)
-        self._frame_page_controller = FramePageController(self._window.frame_page, self._frame_manager)
-        # self._sender_controller = SenderController(self._window.sender_page, self._frame_manager)
-
-        self._frame_page_controller.onFrameSelected.connect(self._on_editor_open)
         self._editor_controller.editorClosed.connect(self._on_editor_close)
 
+        # frames
+        self._frame_page_controller = FramePageController(self._window.frame_page, self._frame_manager)
+        self._frame_page_controller.onFrameSelected.connect(self._on_editor_open)
+        self._frame_page_controller.sendRequest.connect(self._on_send_frame_request)
+
+        # sender
+        self._sender_controller = SenderController(self._window.sender_page, self._frame_manager)
+        self._sender_controller.senderClosed.connect(self._on_sender_closed)
+
     def _on_editor_open(self, _id):
+        """
+        Opens editor
+        :param _id: id of frame to edit
+        """
         self._editor_controller.open(_id)
         self._window.switch_to('editor')
 
     def _on_editor_close(self):
+        """
+        Closes editor by switching to frames page
+        :return:
+        """
+        self._window.switch_to('frames')
+
+    def _on_send_frame_request(self, frame_id):
+        """
+        Opens sender
+        :param frame_id: id of frame to send
+        """
+        self._sender_controller.load_frame(frame_id)
+        self._window.switch_to('sender')
+
+    def _on_sender_closed(self):
+        """
+        Closes sender by switching to frames page
+        :return:
+        """
         self._window.switch_to('frames')

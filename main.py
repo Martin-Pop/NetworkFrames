@@ -14,25 +14,26 @@
 #
 # final_packet.show()
 
-import sys
+import os, logging, sys
 from PySide6.QtWidgets import QApplication
-
-from controllers.editor_controller import EditorController
-from controllers.frame_page_controller import FramePageController
 from controllers.main_controller import MainController
-from core.frame_manager import FrameManager
 from gui.main_window import MainWindow
-import os
+from core.logger import setup_logger
 
 def main():
+
+    setup_logger(logging.DEBUG)
+    log = logging.getLogger(__name__)
+
     app = QApplication(sys.argv)
+    log.debug("Application started")
     style_file_path = os.path.join(os.path.dirname(__file__), "gui/styles.qss")
 
     try:
         with open(style_file_path, "r") as f:
             app.setStyleSheet(f.read())
     except FileNotFoundError:
-        print(f"Err '{style_file_path}'.")
+        log.error(f"Err '{style_file_path}'.")
 
     window = MainWindow()
 
@@ -40,7 +41,6 @@ def main():
 
     window.show()
     sys.exit(app.exec())
-
 
 if __name__ == "__main__":
     main()

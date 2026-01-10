@@ -1,4 +1,6 @@
 from dataclasses import dataclass
+import logging
+log = logging.getLogger(__name__)
 
 @dataclass
 class ProtocolNode:
@@ -73,7 +75,7 @@ class ProtocolStack:
         else:
 
             if not self._builder.is_supported(incoming_protocol_name):
-                print('UNSUPPORTED PROTOCOL NAME', incoming_protocol_name)
+                log.debug('UNSUPPORTED PROTOCOL NAME '+ incoming_protocol_name)
                 if 0 <= index < len(self._edited_protocol_stack):
                     self._edited_protocol_stack[index] = ProtocolNode(incoming_protocol_name, [incoming_protocol_name])
                 else:
@@ -88,7 +90,7 @@ class ProtocolStack:
             possible_upper = self._builder.get_possible_upper_protocols(incoming_protocol_name)
             possible_lower = self._builder.get_possible_lower_protocols(incoming_protocol_name)
 
-            print('index is', index,'upper_neighbor is', upper_protocol, 'lower_neighbor is', lower_protocol, 'possible_upper', possible_upper, 'possible_lower', possible_lower)
+            #print('index is', index,'upper_neighbor is', upper_protocol, 'lower_neighbor is', lower_protocol, 'possible_upper', possible_upper, 'possible_lower', possible_lower)
 
             if upper_protocol and possible_upper:
                 self._edited_protocol_stack[index + 1] = ProtocolNode(upper_protocol, possible_upper)

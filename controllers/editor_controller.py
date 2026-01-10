@@ -1,5 +1,7 @@
 from PySide6.QtCore import Signal, QObject
-from scapy.compat import raw
+import logging
+
+log = logging.getLogger(__name__)
 
 class EditorController(QObject):
 
@@ -28,8 +30,9 @@ class EditorController(QObject):
         data = self._editor_page.get_editor_data()
         frame = self._frame_manager.get_frame(self._current_id)
         frame.reconstruct_scapy(data)
-        raw(frame.scapy)
-        print(frame.scapy.show())
+        log.debug("Saving editor frame")
+        # raw(frame.scapy)
+        # print(frame.scapy.show())
 
     def _close_editor(self):
         """

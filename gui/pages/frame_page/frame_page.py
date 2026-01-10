@@ -1,12 +1,16 @@
+from PySide6.QtCore import Signal
 from PySide6.QtWidgets import (
-    QWidget, QHBoxLayout, QSplitter,
-    QVBoxLayout, QTextEdit, QTabWidget, QLabel
+    QWidget, QHBoxLayout
 )
 
 from gui.pages.frame_page.frame_list_panel import FrameListPanel
-from gui.utils import setup_placeholder
 
 class FramePage(QWidget):
+
+    frameSelected = Signal(int)  # when frame gets selected
+    framesDeleted = Signal(list)  # when frames get deleted
+    addNewFrame = Signal(str)  # when new frame is added
+    sendRequest = Signal(int)
 
     def __init__(self, parent=None):
         super(FramePage, self).__init__(parent)
@@ -14,10 +18,14 @@ class FramePage(QWidget):
         main_layout = QHBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
 
-        self.frame_list_panel = FrameListPanel()
-        main_layout.addWidget(self.frame_list_panel)
-        # frl = QHBoxLayout(self.frame_list_panel)
-        # frl.addWidget(setup_placeholder("Frame List"))
+        self._frame_list_panel = FrameListPanel()
+        #signal chain
+        self._frame_list_panel.frameSelected.connect(self.frameSelected)
+        self._frame_list_panel.framesDeleted.connect(self.framesDeleted)
+        self._frame_list_panel.addNewFrame.connect(self.addNewFrame)
+        self._frame_list_panel.sendRequest.connect(self.sendRequest)
 
+        main_layout.addWidget(self._frame_list_panel)
 
-
+    def add_frame(self, frame):
+        self._frame_list_panel.add_frame(frame)

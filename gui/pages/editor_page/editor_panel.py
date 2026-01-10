@@ -6,6 +6,8 @@ from PySide6.QtWidgets import (
 )
 
 from scapy.fields import *
+import logging
+log = logging.getLogger(__name__)
 
 class ScapyFieldRow(QWidget):
     """
@@ -81,7 +83,7 @@ class ScapyFieldRow(QWidget):
         f = self.field_desc
         val = self.current_val
 
-        print(f.name ,type(f), val)
+        log.debug(f'{f.name} {type(f)} {val}')
 
         #remove emph wrapper
         if isinstance(f, Emph):
@@ -220,7 +222,7 @@ class ScapyFieldRow(QWidget):
         self._update_from_string(txt)
 
     def _setup_readonly(self, f, val):
-        print('setting up readonly for: ', f, val)
+        log.debug(f'setting up readonly for: {f} {val}')
         if val is not None:
             try:
                 repr_val = f.i2repr(None, val)
@@ -368,7 +370,7 @@ class FieldEditorWidget(QWidget):
 
         layer_name = layer.name
         cls_name = layer.__class__.__name__
-        print('creating protocol page 2 for', layer_name)
+        log.debug(f'creating protocol page for {layer_name}')
 
         # Scroll
         scroll_area = QScrollArea()
@@ -412,7 +414,7 @@ class FieldEditorWidget(QWidget):
         Switches editor page to desirable protocol / layer
         :param protocol_name: name
         """
-        print('SWITCHING TO', protocol_name)
+        log.debug('SWITCHING TO ' + protocol_name)
         if protocol_name in self.pages:
             widget = self.pages[protocol_name]
             self.stack.setCurrentWidget(widget)

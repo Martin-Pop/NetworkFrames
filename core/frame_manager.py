@@ -4,6 +4,8 @@ from scapy.layers.inet6 import IPv6
 from scapy.fields import RawVal
 from PySide6.QtCore import QObject, Signal
 
+import logging
+log = logging.getLogger(__name__)
 
 class NetworkFrame(QObject):
 
@@ -63,7 +65,7 @@ class NetworkFrame(QObject):
             layer_cls = getattr(scapy_all, layer_name, None)
 
             if layer_cls is None:
-                print(f"Warning: Unknown Scapy layer '{layer_name}', skipping.")
+                log(f"Warning: Unknown Scapy layer '{layer_name}', skipping.")
                 continue
 
             layer_instance = None
@@ -98,7 +100,7 @@ class NetworkFrame(QObject):
         return layers
 
     def reconstruct_scapy(self, editor_data):
-        print("EDITOR DATA: ", editor_data)
+        log.debug("EDITOR DATA: " + str(editor_data))
         packet = None
 
         for layer_info in editor_data:
@@ -107,7 +109,7 @@ class NetworkFrame(QObject):
 
             layer_cls = getattr(scapy_all, class_name, None)
             if not layer_cls:
-                print(f"Warning unknown class:{class_name}")
+                log.warning(f"Warning unknown class:{class_name}")
                 continue
 
             final_fields = {}
@@ -129,7 +131,7 @@ class NetworkFrame(QObject):
 
                 except Exception:
                     # use RawVal
-                    print(f"Field '{key}' validation failed for value '{val}'. Forcing RawVal.")
+                    log.error(f"Field '{key}' validation failed for value '{val}'. Forcing RawVal.")
                     if isinstance(val, str):
                         raw_data = val.encode('utf-8')
                     elif isinstance(val, bytes):
@@ -147,7 +149,7 @@ class NetworkFrame(QObject):
                     packet = packet / new_layer
 
             except Exception as e:
-                print(f"CRITICAL: Failed to create layer {class_name} even with RawVal: {e}")
+                log.critical(f"CRITICAL: Failed to create layer {class_name} even with RawVal: {e}")
 
         self._scapy_object = packet
         self._update_info()
@@ -162,7 +164,7 @@ class FrameManager:
         return self.frames.get(str(_id), None)
 
     def add(self, frame):
-        print(frame)
+        log.debug(frame)
         new_frame = NetworkFrame(self._current_id, frame)
         self.frames[str(self._current_id)] = new_frame
         self._current_id += 1
