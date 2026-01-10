@@ -2,21 +2,27 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout,
     QFormLayout, QFrame, QScrollArea,
     QStackedWidget, QLabel, QLineEdit,
-    QGroupBox, QComboBox, QGridLayout, QCheckBox, QSpinBox, QHBoxLayout, QDoubleSpinBox
+    QGroupBox, QComboBox, QGridLayout, QCheckBox,
+    QSpinBox, QHBoxLayout, QDoubleSpinBox, QToolButton
 )
+from PySide6.QtCore import Signal, QEvent, Qt
 
 from scapy.fields import *
 import logging
+
 log = logging.getLogger(__name__)
+
 
 class ScapyFieldRow(QWidget):
     """
-        A unified row widget containing:
-        1. Main Editor (Editable - Type specific)
-        2. Hex View (Read-only)
-        3. Binary View (Read-only)
-        4. Size Label (Static info)
-        """
+    A unified row widget containing:
+    1. Main Editor (Editable - Type specific)
+    2. Hex View (Read-only)
+    3. Binary View (Read-only)
+    4. Size Label (Static info)
+    """
+
+    infoRequested = Signal(str, str)
 
     def __init__(self, field_desc, current_val, parent=None):
         super().__init__(parent)
@@ -42,28 +48,54 @@ class ScapyFieldRow(QWidget):
         self.hex_display.setPlaceholderText("HEX")
         self.hex_display.setReadOnly(True)
         self.hex_display.setFixedWidth(80)
-        #self.hex_display.setStyleSheet("QLineEdit { background-color: #f0f0f0; color: #555; }")
 
         self.bin_display = QLineEdit()
         self.bin_display.setPlaceholderText("BIN")
         self.bin_display.setReadOnly(True)
-        # self.bin_display.setFixedWidth(120)
-        #self.bin_display.setStyleSheet("QLineEdit { background-color: #f0f0f0; color: #555; }")
 
         # size label
         size_str = self._get_size_string(field_desc)
         self.size_label = QLabel(size_str)
-        # self.size_label.setStyleSheet("color: #888; font-size: 10px;")
-        # self.size_label.setFixedWidth(75)
+
+        # info button
+        self.info_btn = QToolButton()
+        self.info_btn.setText("?")
+        self.info_btn.setFixedWidth(25)
+        self.info_btn.setToolTip("Show field info")
+        self.info_btn.clicked.connect(self._emit_info)
 
         # factory
         self._init_editor_by_type()
+
+        # event filter for focus
+        if self.editor_widget:
+            self.editor_widget.installEventFilter(self)
+            for child in self.editor_widget.findChildren(QWidget):
+                child.installEventFilter(self)
 
         self.mid_layout.addWidget(self.bin_display)
 
         self.layout.addWidget(self.mid_container)
         self.layout.addWidget(self.hex_display)
         self.layout.addWidget(self.size_label)
+        self.layout.addWidget(self.info_btn)
+
+    def eventFilter(self, source, event):
+        if event.type() == QEvent.Type.FocusIn:
+            self._emit_info()
+        return super().eventFilter(source, event)
+
+    def _emit_info(self):
+        f = self.field_desc
+        title = f.name
+
+        info_text = f"<b>Type:</b> {f.__class__.__name__}<br>"
+        info_text += f"<b>Size:</b> {self._get_size_string(f)}<br>"
+
+        if hasattr(f, "default"):
+            info_text += f"<b>Default:</b> {f.default}<br>"
+
+        self.infoRequested.emit(title, info_text)
 
     def get_value(self):
         """Returns the value from the main editor."""
@@ -77,7 +109,6 @@ class ScapyFieldRow(QWidget):
             return self._get_flags_value()
         return self.current_val  # Fallback
 
-
     # factory init helpers
     def _init_editor_by_type(self):
         f = self.field_desc
@@ -85,7 +116,7 @@ class ScapyFieldRow(QWidget):
 
         log.debug(f'{f.name} {type(f)} {val}')
 
-        #remove emph wrapper
+        # remove emph wrapper
         if isinstance(f, Emph):
             f = f.fld
 
@@ -109,7 +140,7 @@ class ScapyFieldRow(QWidget):
         else:
             self._setup_readonly(f, val)
 
-    #setup methods
+    # setup methods
     def _setup_number(self, f, val):
         self.editor_widget = QDoubleSpinBox()
         self.editor_widget.setDecimals(0)
@@ -138,21 +169,20 @@ class ScapyFieldRow(QWidget):
         current_int = int(val) if val is not None else 0
         spin_widget.setValue(current_int)
 
-        self.editor_widget = spin_widget #make spinbox main
+        self.editor_widget = spin_widget  # make spinbox main
 
         # combobox helper
         combo_widget = QComboBox()
-        combo_widget.addItem("Custom / Unknown", -1) #index 0
+        combo_widget.addItem("Custom / Unknown", -1)  # index 0
 
-
-        #sorted_options = sorted(options.items(), key=lambda item: item[0])
+        # sorted_options = sorted(options.items(), key=lambda item: item[0])
         for v, name in options.items():
             combo_widget.addItem(f"{name} ({v})", v)
 
-        #sync
+        # sync
         def on_combo_changed(idx):
             data = combo_widget.currentData()
-            if data != -1:  #ignore -1 (unknown/custom)
+            if data != -1:  # ignore -1 (unknown/custom)
                 spin_widget.blockSignals(True)
                 spin_widget.setValue(int(data))
                 spin_widget.blockSignals(False)
@@ -164,7 +194,7 @@ class ScapyFieldRow(QWidget):
             if idx >= 0:
                 combo_widget.setCurrentIndex(idx)
             else:
-                combo_widget.setCurrentIndex(0) # unknown / custom
+                combo_widget.setCurrentIndex(0)  # unknown / custom
             combo_widget.blockSignals(False)
 
             self._update_from_int(val)
@@ -206,7 +236,7 @@ class ScapyFieldRow(QWidget):
         self._update_from_flags()
 
     def _setup_string(self, f, val):
-        #TODO: add validation
+        # TODO: add validation
         self.editor_widget = QLineEdit()
         txt = ""
         if val is not None:
@@ -236,7 +266,6 @@ class ScapyFieldRow(QWidget):
 
         self.hex_display.setText("-")
         self.bin_display.setText("-")
-
 
     # update sync
     def _update_from_int(self, val):
@@ -289,7 +318,10 @@ class ScapyFieldRow(QWidget):
 
         # from sz (struct size)
         if hasattr(f, "sz"):
-            return f"{f.sz} bytes"
+            size = f.sz
+            if size < 0:
+                return f"{size * 8} bits"
+            return f"{size} bytes"
 
         return "Var"  # fallback
 
@@ -309,6 +341,8 @@ class FieldEditorWidget(QWidget):
     Editor for frame's layers / protocols
     """
 
+    fieldInfoChanged = Signal(str, str)  # title, text
+
     def __init__(self):
         super().__init__()
 
@@ -318,7 +352,7 @@ class FieldEditorWidget(QWidget):
         self.stack = QStackedWidget()
         main_layout.addWidget(self.stack)
 
-        self.pages = {} # dictionary to store editor page of the frames layers
+        self.pages = {}  # dictionary to store editor page of the frames layers
         self._create_empty_page()
         self.switch_to('None')
 
@@ -338,7 +372,7 @@ class FieldEditorWidget(QWidget):
         """
         Calls function to remove protocol page on every layer. Empty page remains.
         """
-        to_remove = [name for name in self.pages.keys() if name != 'None'] #necessary because _remove_protocol_page alters self.pages
+        to_remove = [name for name in self.pages.keys() if name != 'None']  # necessary because _remove_protocol_page alters self.pages
         for name in to_remove:
             self._remove_protocol_page(name)
 
@@ -351,7 +385,7 @@ class FieldEditorWidget(QWidget):
             self._create_protocol_page(layer)
 
         self.switch_to('None')
-        
+
     def update_editor(self, layers):
         """
         Calls function to create protocol page for every layer that doesn't have one yet.
@@ -360,7 +394,6 @@ class FieldEditorWidget(QWidget):
         for layer in layers:
             if layer.name not in self.pages:
                 self._create_protocol_page(layer)
-
 
     def _create_protocol_page(self, layer):
         """
@@ -399,6 +432,8 @@ class FieldEditorWidget(QWidget):
             lbl.setFixedWidth(100)
 
             field_widget = ScapyFieldRow(f, val)
+
+            field_widget.infoRequested.connect(self.fieldInfoChanged.emit)
 
             row_layout.addWidget(lbl)
             row_layout.addWidget(field_widget)

@@ -63,6 +63,7 @@ class EditorPage(QStackedWidget):
 
         # Protocol field Editor
         self.editor_widget = FieldEditorWidget()
+        self.editor_widget.fieldInfoChanged.connect(self.update_info_panel)
         right_layout.addWidget(self.editor_widget)
 
         # setup_placeholder(self.right_panel, "Right panel")
@@ -86,6 +87,10 @@ class EditorPage(QStackedWidget):
         self.addWidget(self.main_widget) # index 1
 
         self.setCurrentIndex(0) # empty default
+
+    def update_info_panel(self, title, text):
+        formatted_text = f"<h3>{title}</h3><p>{text}</p>"
+        self.info_widget.setText(formatted_text)
 
     def clear_page(self):
         self.protocol_stack_widget.clear()

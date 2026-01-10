@@ -1,0 +1,244 @@
+/* GLOBAL */
+QWidget {
+    font-family: "Segoe UI", Arial, sans-serif;
+    font-size: 12px;
+    color: @TEXT;
+}
+
+QMainWindow {
+    background-color: @BG;
+}
+
+/* NAVIGATION BAR */
+#control_bar QPushButton {
+    background-color: @PRIMARY;
+    color: @PRIMARY_TEXT;
+    border: none;
+    border-bottom: 4px solid @PRIMARY;
+    padding: 5px 12px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+#control_bar QPushButton:hover {
+    background-color: @PRIMARY_HOVER;
+}
+
+#control_bar QPushButton[selected="true"] {
+    background-color: @PRIMARY_HOVER;
+    border-bottom: 4px solid @SECONDARY;
+}
+
+/* --- PROTOCOL STACK --- */
+QFrame#protocol_stack_widget {
+    border: 2px solid @SECONDARY;
+    border-radius: 4px;
+    background-color: @BG;
+}
+
+QPushButton#protocol_stack_edit_button {
+    background-color: @SECONDARY;
+    color: @PRIMARY_TEXT;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    padding: 8px;
+    text-align: center;
+}
+QPushButton#protocol_stack_edit_button:hover {
+    background-color: @SECONDARY_HOVER;
+}
+
+
+QPushButton[styleClass~='protocol_stack_button'] {
+    background-color: @PRIMARY;
+    color: @PRIMARY_TEXT;
+    border-radius: 3px;
+    padding: 6px;
+    margin: 2px 10px;
+}
+
+QPushButton[styleClass~='protocol_stack_button']:hover {
+    background-color: @PRIMARY_HOVER;
+}
+
+QLabel#frame_id_label {
+    font-size: 14px;
+    font-weight: bold;
+    color: @SECONDARY;
+    padding: 5px 0;
+}
+
+/* --- INFO WIDGET --- */
+QTextEdit#info_widget {
+    background-color: @INFO_BG;
+    border: 1px solid @BORDER;
+    border-radius: 4px;
+    color: @TEXT;
+    padding: 5px;
+}
+
+/* --- EDITOR PANEL --- */
+FieldEditorWidget QLabel {
+    font-size: 16px;
+    color: @SECONDARY;
+    margin-bottom: 5px;
+}
+
+ScapyFieldRow QLabel {
+    color: @PRIMARY; 
+    font-weight: bold;
+    font-size: 13px;
+}
+
+/* Info Button */
+QToolButton {
+    background-color: transparent;
+    border: 1px solid @BORDER;
+    border-radius: 4px;
+    color: @SECONDARY;
+    font-weight: bold;
+}
+
+QToolButton:hover {
+    background-color: @SECONDARY;
+    color: @PRIMARY_TEXT;
+    border-color: @SECONDARY;
+}
+
+/* INPUTS */
+QLineEdit, QDoubleSpinBox, QSpinBox, QComboBox {
+    background-color: @BG_INPUT;
+    border: 1px solid @BORDER;
+    border-radius: 3px;
+    padding: 4px;
+    color: @TEXT;
+    font-family: "Consolas", monospace;
+}
+
+QLineEdit:focus, QDoubleSpinBox:focus, QSpinBox:focus, QComboBox:focus {
+    border: 1px solid @PRIMARY;
+    background-color: @BG_SECONDARY;
+}
+
+QLineEdit[readOnly="true"] {
+    background-color: @BG_READONLY;
+    color: #6C757D;
+    border: 1px solid @BG_READONLY;
+}
+
+/* Arrows and Checkboxes */
+QDoubleSpinBox::up-button, QSpinBox::up-button,
+QDoubleSpinBox::down-button, QSpinBox::down-button {
+    background-color: @BG_READONLY;
+    border-left: 1px solid @BORDER;
+    width: 16px;
+}
+
+QComboBox::down-arrow {
+    border-top: 5px solid @SECONDARY;
+}
+
+QCheckBox::indicator {
+    border: 1px solid @BORDER;
+    background: @BG;
+}
+
+QCheckBox::indicator:checked {
+    background-color: @PRIMARY;
+    border: 1px solid @PRIMARY;
+}
+
+/* Common Buttons */
+QPushButton[styleClass~='common_button'] {
+    background-color: @PRIMARY;
+    color: @PRIMARY_TEXT;
+    border-radius: 4px;
+    padding: 6px 15px;
+    font-weight: bold;
+    border: none;
+}
+
+QPushButton[styleClass~='common_button']:hover {
+    background-color: @PRIMARY_HOVER;
+}
+
+/* FRAME LIST */
+QTreeWidget {
+    border: 2px solid @BORDER;
+
+    background-color: @BG_SECONDARY;
+    alternate-background-color: #BFBFBF;
+    font-size: 15px;
+    outline: 0;
+}
+
+QTreeWidget::item {
+    height: 25px;
+    color: @TEXT;
+
+    border-bottom: 2px solid @BORDER;
+    border-right: 2px solid @BORDER;
+    padding-left: 5px;
+}
+
+QTreeWidget::item:last {
+    border-right: none;
+}
+
+QTreeWidget::item:hover:!selected {
+    background-color: #F0F0F0;
+}
+
+QTreeWidget::item:selected {
+    background-color: @PRIMARY;
+    color: @PRIMARY_TEXT;
+    border-bottom: 2px solid @PRIMARY_HOVER;
+    border-right: 2px solid @PRIMARY_HOVER;
+}
+
+/* HEADERS */
+QHeaderView::section {
+    background-color: @BG_SECONDARY;
+    color: @SECONDARY;
+    padding: 5px;
+
+    font-weight: bold;
+    font-size: 15px;
+
+    border-bottom: 3px solid @SECONDARY;
+
+    border-right: 2px solid @BORDER;
+    border-top: none;
+    border-left: none;
+}
+
+QHeaderView::section:last {
+    border-right: none;
+}
+
+/* CONTEXT MENU */
+QMenu {
+    background-color: @BG;
+    border: 2px solid @BORDER;
+    padding: 5px;
+}
+
+QMenu::item {
+    padding: 6px 25px 6px 20px;
+    background-color: transparent;
+    color: @TEXT;
+    margin: 2px;
+    border-radius: 3px;
+}
+
+QMenu::item:selected {
+    background-color: @PRIMARY;
+    color: @PRIMARY_TEXT;
+}
+
+QMenu::separator {
+    height: 1px;
+    background-color: @BORDER;
+    margin: 4px 10px;
+}

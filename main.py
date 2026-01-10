@@ -19,6 +19,7 @@ from PySide6.QtWidgets import QApplication
 from controllers.main_controller import MainController
 from gui.main_window import MainWindow
 from core.logger import setup_logger
+from gui.styles.style_loader import apply_stylesheet
 
 def main():
 
@@ -27,13 +28,11 @@ def main():
 
     app = QApplication(sys.argv)
     log.debug("Application started")
-    style_file_path = os.path.join(os.path.dirname(__file__), "gui/styles.qss")
 
     try:
-        with open(style_file_path, "r") as f:
-            app.setStyleSheet(f.read())
-    except FileNotFoundError:
-        log.error(f"Err '{style_file_path}'.")
+        apply_stylesheet(app)
+    except Exception as e:
+        log.error(e)
 
     window = MainWindow()
 

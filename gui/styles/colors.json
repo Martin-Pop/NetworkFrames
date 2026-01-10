@@ -1,0 +1,14 @@
+{
+    "PRIMARY": "#EF8354",
+    "PRIMARY_HOVER": "#D9774B",
+    "PRIMARY_TEXT": "#FFFFFF",
+    "SECONDARY": "#4F5D75",
+    "SECONDARY_HOVER": "#384253",
+    "BG": "#f0f0f0",
+    "BG_SECONDARY": "#c8c8c8",
+    "BG_INPUT": "#FFFFFF",
+    "BG_READONLY": "#E9ECEF",
+    "TEXT": "#2D3142",
+    "BORDER": "#a3a3a3",
+    "INFO_BG": "#F0F2F5"
+}

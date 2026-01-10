@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (
     QTreeWidget, QTreeWidgetItem, QAbstractItemView,
-    QHeaderView, QMenu
+    QHeaderView, QMenu, QFrame
 )
 from PySide6.QtGui import QAction
 from PySide6.QtCore import Qt, Signal, QPoint
@@ -24,9 +24,11 @@ class FrameListPanel(QTreeWidget):
         columns = ["Number", "Source", "Destination", "Protocol", "Length", "Info"]
         self.setColumnCount(len(columns))
         self.setHeaderLabels(columns)
+        self.setObjectName("packet_list")
 
         self.setRootIsDecorated(False)
         self.setAlternatingRowColors(True)
+        self.setFrameShape(QFrame.Shape.NoFrame)
         self.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.setUniformRowHeights(True)
@@ -38,6 +40,7 @@ class FrameListPanel(QTreeWidget):
         header.resizeSection(5, 70)
         header.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
 
+        self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.customContextMenuRequested.connect(self._open_context_menu)
         self.itemDoubleClicked.connect(self._on_item_clicked)
