@@ -1,6 +1,7 @@
 from PySide6.QtCore import QObject, Signal
 
 from core.sender_worker import SenderWorker
+from core.input_output.interfaces import get_interfaces
 import logging
 log = logging.getLogger(__name__)
 
@@ -20,8 +21,7 @@ class SenderController(QObject):
         self._sender_page.stopClicked.connect(self._stop_sending)
         self._sender_page.exitActivated.connect(self._close_sender)
 
-        # TODO: load real interfaces
-        self._sender_page.set_interfaces(['Ethernet', 'Wi-Fi','Loopback'])
+        self._sender_page.set_interfaces(get_interfaces())
 
     def load_frame(self, frame_id):
         """

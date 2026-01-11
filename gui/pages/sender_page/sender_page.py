@@ -124,10 +124,10 @@ class SenderPage(QWidget):
         self.main_layout.addLayout(btn_layout)
 
 
-    def set_interfaces(self, iface_list):
+    def set_interfaces(self, int_list):
         self.interface_combo.clear()
-        for iface in iface_list:
-            name = str(iface)
+        for intf in int_list:
+            name = intf.get("name")
             self.interface_combo.addItem(name)
 
     def set_frame_info(self, frame_name):
