@@ -74,7 +74,6 @@ class MainWindow(QMainWindow):
 
         btn = QPushButton(name.title())
         btn.setFixedWidth(90)
-        btn.setProperty("styleClass", "common_button")
         btn.setObjectName(name+'_button')
         btn.clicked.connect(lambda: self.switch_to(name))
 

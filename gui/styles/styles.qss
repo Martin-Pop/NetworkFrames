@@ -5,6 +5,11 @@ QWidget {
     color: @TEXT;
 }
 
+QLabel{
+    font-size: 15px;
+    color: @SECONDARY;
+}
+
 QMainWindow {
     background-color: @BG;
 }
@@ -13,8 +18,8 @@ QMainWindow {
 #control_bar QPushButton {
     background-color: @PRIMARY;
     color: @PRIMARY_TEXT;
-    border: none;
-    padding: 5px 12px;
+    border-radius: 3px;
+    padding: 6px 12px;
     font-size: 16px;
     font-weight: bold;
 }
@@ -47,18 +52,6 @@ QPushButton#protocol_stack_edit_button:hover {
     background-color: @SECONDARY_HOVER;
 }
 
-
-QPushButton[styleClass~='protocol_stack_button'] {
-    background-color: @PRIMARY;
-    color: @PRIMARY_TEXT;
-    border-radius: 3px;
-    padding: 6px;
-    margin: 2px 10px;
-}
-
-QPushButton[styleClass~='protocol_stack_button']:hover {
-    background-color: @PRIMARY_HOVER;
-}
 
 QLabel#frame_id_label {
     font-size: 16px;
@@ -115,13 +108,13 @@ QLineEdit, QDoubleSpinBox, QSpinBox, QComboBox {
     border: 1px solid @SECONDARY;
     border-radius: 3px;
     padding: 4px;
-    color: @TEXT;
+    color: @BORDER;
     font-family: "Consolas", monospace;
 }
 
 QLineEdit:focus, QDoubleSpinBox:focus, QSpinBox:focus, QComboBox:focus {
     border: 1px solid @PRIMARY;
-    background-color: @BG_SECONDARY;
+    background-color: @INFO_BG;
 }
 
 QLineEdit[readOnly="true"] {
@@ -138,8 +131,8 @@ QDoubleSpinBox::down-button, QSpinBox::down-button {
     width: 16px;
 }
 
-QComboBox::down-arrow {
-    border-top: 5px solid @SECONDARY;
+QDoubleSpinBox::up-button, QSpinBox::up-button {
+    border-bottom: 1px solid @BORDER;
 }
 
 QCheckBox::indicator {
@@ -265,4 +258,43 @@ QSplitter::handle:hover {
 
 QSplitter::handle:pressed {
     background-color: @PRIMARY;
+}
+
+/* SENDER PANELS */
+#sender_target, #sender_info,#sender_stats, #sender_fuzz, #sender_buttons, #sender_conf {
+    background-color: @BG_SECONDARY;
+    border-radius: 4px;
+    color: @TEXT;
+    padding: 5px;
+}
+
+QPushButton[styleClass~='send_button'] {
+    height: 25px;
+    width: 80px;
+    background-color: @PRIMARY;
+    color: @PRIMARY_TEXT;
+    border-radius: 4px;
+    padding: 6px 15px;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+}
+
+QPushButton[styleClass~='send_button']:hover {
+    background-color: @PRIMARY_HOVER;
+}
+
+#sender_conf QComboBox::drop-down {
+    border: none;
+    width: 20px;
+}
+
+#sender_buttons QPushButton:hover {
+    background-color: @BG_HOVER;
+}
+
+#sender_buttons QPushButton:checked {
+    background-color: @SECONDARY;
+    color: @PRIMARY_TEXT;
+    border: 1px solid @SECONDARY_DARK;
 }

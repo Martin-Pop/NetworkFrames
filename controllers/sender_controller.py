@@ -17,9 +17,9 @@ class SenderController(QObject):
         self._current_frame_id = None
 
         # signals
-        self._sender_page.startClicked.connect(self._start_sending)
-        self._sender_page.stopClicked.connect(self._stop_sending)
-        self._sender_page.exitActivated.connect(self._close_sender)
+        # self._sender_page.startClicked.connect(self._start_sending)
+        # self._sender_page.stopClicked.connect(self._stop_sending)
+        # self._sender_page.exitActivated.connect(self._close_sender)
 
         self._sender_page.set_interfaces(get_interfaces())
 
@@ -33,8 +33,8 @@ class SenderController(QObject):
         frame = self._frame_manager.get_frame(frame_id)
         if frame:
             self._sender_page.set_frame_info(str(frame.get_info()))
-            self._sender_page.update_counter(0)
-            self._sender_page.set_running_state(False)
+            # self._sender_page.update_counter(0)
+            # self._sender_page.set_running_state(False)
 
         # self._sender_page.reset_status() #
 

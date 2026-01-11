@@ -46,7 +46,7 @@ class ProtocolStackWidget(QFrame):
 
         for protocol in reversed(protocol_list):
             btn = QPushButton(protocol)
-            btn.setProperty('styleClass', 'protocol_stack_button')
+            btn.setProperty('styleClass', 'common_button')
             btn.clicked.connect(lambda checked, p=protocol: self.protocolSelected.emit(p))
             self.button_container.addWidget(btn)
 

@@ -1,173 +1,126 @@
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
-    QLabel, QComboBox, QSpinBox, QDoubleSpinBox,
-    QCheckBox, QPushButton, QGroupBox, QFrame, QSpacerItem, QSizePolicy
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QSplitter
 )
 from PySide6.QtCore import Signal, Qt
 
+from gui.pages.sender_page.sender_conf_panel import SenderConfPanel, SenderInfoPanel
+from gui.pages.sender_page.sender_fuzz_panel import SenderFuzzPanel
+from gui.pages.sender_page.sender_stats_panel import SenderStatsPanel
+from gui.pages.sender_page.sender_buttons_panel import SenderButtonsPanel
+
 
 class SenderPage(QWidget):
-
+    # Re-emit signals to controller
     startClicked = Signal()
     stopClicked = Signal()
-    exitActivated = Signal()
+    pauseClicked = Signal()
+    backClicked = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.current_interfaces = []  # Store raw data to lookup info
         self._init_ui()
+        self._connect_internals()
 
     def _init_ui(self):
-
         self.main_layout = QVBoxLayout(self)
         self.main_layout.setContentsMargins(20, 20, 20, 20)
-        self.main_layout.setSpacing(15)
+        self.main_layout.setSpacing(20)
 
-        # header
-        title_label = QLabel("Packet Sender")
-        title_label.setStyleSheet("font-size: 18px; font-weight: bold; color: #333;")
-        self.main_layout.addWidget(title_label)
+        # target frame
+        self.target_widget = QFrame(self)
+        self.target_widget.setObjectName('sender_target')
+        target_layout = QVBoxLayout(self.target_widget)
 
-        # info
-        self.info_group = QGroupBox("Target Frame")
-        self.info_layout = QVBoxLayout(self.info_group)
+        self.frame_label = QLabel("Frame: { No Frame Selected }")
+        target_layout.addWidget(self.frame_label)
 
-        self.frame_name_label = QLabel("- No frame selected -")
-        self.frame_name_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #E8834A;")
-        self.info_layout.addWidget(self.frame_name_label)
+        self.main_layout.addWidget(self.target_widget)
 
-        self.main_layout.addWidget(self.info_group)
+        # conf Conf | Info
+        splitter = QSplitter(Qt.Orientation.Horizontal)
 
-        # config
-        self.config_group = QGroupBox("Configuration")
-        self.form_layout = QFormLayout(self.config_group)
-        self.form_layout.setSpacing(10)
+        self.conf_panel = SenderConfPanel()
+        self.info_panel = SenderInfoPanel()
 
-        # Interface selection
-        self.interface_combo = QComboBox()
-        self.form_layout.addRow("Interface:", self.interface_combo)
+        # need new widgets just for space around splitter bar ? or i cant find some hidden splitter property that does exactly this
+        left_w = QWidget()
+        left_layout = QVBoxLayout(left_w)
+        left_layout.setContentsMargins(0, 0, 10, 0)
+        left_layout.addWidget(self.conf_panel)
 
-        # send count
-        self.count_spin = QSpinBox()
-        self.count_spin.setRange(-1, 999999)
-        self.count_spin.setValue(1)
-        self.count_spin.setSpecialValueText("Infinite Loop")  # if -1 => inf loop
-        self.form_layout.addRow("Count:", self.count_spin)
+        right_w = QWidget()
+        right_layout = QVBoxLayout(right_w)
+        right_layout.setContentsMargins(10, 0, 0, 0)
+        right_layout.addWidget(self.info_panel)
 
-        # interval
-        self.interval_spin = QDoubleSpinBox()
-        self.interval_spin.setRange(0.0, 60.0)
-        self.interval_spin.setSingleStep(0.1)
-        self.interval_spin.setValue(0.1)
-        self.interval_spin.setSuffix(" sec")
-        self.form_layout.addRow("Interval:", self.interval_spin)
+        splitter.addWidget(left_w)
+        splitter.addWidget(right_w)
 
-        self.main_layout.addWidget(self.config_group)
+        self.main_layout.addWidget(splitter)
 
-        # fuzzing wip
-        self.fuzz_group = QGroupBox("Fuzzing & Modification")
-        fuzz_layout = QVBoxLayout(self.fuzz_group)
-
-        self.fuzz_checkbox = QCheckBox("Enable Fuzzing / Malformation")
-        self.fuzz_checkbox.setToolTip("If checked, packet fields might be randomized based on rules.")
-        fuzz_layout.addWidget(self.fuzz_checkbox)
-
-        # fuzzing config here
-
-        self.main_layout.addWidget(self.fuzz_group)
-
-        # status ---
-        self.status_frame = QFrame()
-        self.status_frame.setStyleSheet("background-color: #f0f0f0; border-radius: 5px;")
-        status_layout = QHBoxLayout(self.status_frame)
-
-        self.counter_label = QLabel("Sent: 0")
-        self.counter_label.setStyleSheet("font-weight: bold; font-size: 14px;")
-
-        self.status_label = QLabel("Ready")
-        self.status_label.setStyleSheet("color: gray;")
-
-        status_layout.addWidget(self.counter_label)
-        status_layout.addStretch()
-        status_layout.addWidget(self.status_label)
-
-        self.main_layout.addWidget(self.status_frame)
+        # fuzzing
+        self.fuzz_panel = SenderFuzzPanel()
+        self.main_layout.addWidget(self.fuzz_panel)
 
         self.main_layout.addStretch()
 
-        # actions
-        btn_layout = QHBoxLayout()
-        btn_layout.setSpacing(10)
+        # 4. actions Stats | Buttons
+        action_area = QHBoxLayout()
 
-        # Start Button
-        self.btn_start = QPushButton("Start Sending")
-        self.btn_start.setMinimumHeight(40)
+        self.stats_panel = SenderStatsPanel()
+        self.btns_panel = SenderButtonsPanel()
 
-        self.btn_start.clicked.connect(self.startClicked.emit)
+        action_area.addWidget(self.stats_panel, stretch=1)
+        action_area.addWidget(self.btns_panel, stretch=0)
 
-        # Stop Button
-        self.btn_stop = QPushButton("Stop")
-        self.btn_stop.setMinimumHeight(40)
-        self.btn_stop.setEnabled(False)
+        self.main_layout.addLayout(action_area)
 
-        self.btn_stop.clicked.connect(self.stopClicked.emit)
+    def _connect_internals(self):
+        self.conf_panel.interfaceChanged.connect(self._on_interface_changed)
 
-        # Exit Button
-        self.btn_exit = QPushButton("Back")
-        self.btn_exit.setMinimumHeight(40)
-
-        self.btn_exit.clicked.connect(self.exitActivated.emit)
-
-        btn_layout.addWidget(self.btn_start)
-        btn_layout.addWidget(self.btn_stop)
-        btn_layout.addWidget(self.btn_exit)
-
-        self.main_layout.addLayout(btn_layout)
+        self.btns_panel.startClicked.connect(self.startClicked.emit)
+        self.btns_panel.stopClicked.connect(self.stopClicked.emit)
+        self.btns_panel.pauseClicked.connect(self.pauseClicked.emit)
+        self.btns_panel.backClicked.connect(self.backClicked.emit)
 
 
     def set_interfaces(self, int_list):
-        self.interface_combo.clear()
-        for intf in int_list:
-            name = intf.get("name")
-            self.interface_combo.addItem(name)
+        """
+        Saves interfaces to use
+        :param int_list: list of interfaces
+        """
+        self.current_interfaces = int_list
+        names = [interface.get('name') for interface in int_list]
+        self.conf_panel.set_interfaces(names)
 
-    def set_frame_info(self, frame_name):
-        self.frame_name_label.setText(f"Frame: {frame_name}")
-        self.counter_label.setText("Sent: 0")
-        self.status_label.setText("Ready")
-        self.status_label.setStyleSheet("color: gray;")
+    def _on_interface_changed(self, iface_name):
+        """
+        Finds the interface from the interface list and updates info UI
+        :param iface_name: name of the interface
+        """
+        selected_data = next((i for i in self.current_interfaces if i["name"] == iface_name), None)
+        self.info_panel.update_info(selected_data)
 
-    def get_selected_interface(self):
-        return self.interface_combo.currentText()
-
-    def get_count(self):
-        return self.count_spin.value()
-
-    def get_interval(self):
-        return self.interval_spin.value()
-
-    def is_fuzzing_enabled(self):
-        return self.fuzz_checkbox.isChecked()
-
-    def update_counter(self, count):
-        self.counter_label.setText(f"Sent: {count}")
-
-    def show_error(self, message):
-        self.status_label.setText(f"Error: {message}")
-        self.status_label.setStyleSheet("color: red; font-weight: bold;")
+    def set_frame_info(self, frame_desc):
+        self.frame_label.setText(f"Frame: {frame_desc}")
+        self.stats_panel.update_count(0)
+        self.stats_panel.set_status("Ready", "gray")
 
     def set_running_state(self, is_running):
-
-        self.btn_start.setEnabled(not is_running)
-        self.btn_stop.setEnabled(is_running)
-        self.btn_exit.setEnabled(not is_running)
-
-        self.config_group.setEnabled(not is_running)
-        self.fuzz_group.setEnabled(not is_running)
-        self.info_group.setEnabled(not is_running)
+        self.btns_panel.set_running_state(is_running)
+        self.conf_panel.set_locked(is_running)
+        self.fuzz_panel.set_locked(is_running)
 
         if is_running:
-            self.status_label.setText("Sending...")
-            self.status_label.setStyleSheet("color: #E8834A; font-weight: bold;")
+            self.stats_panel.set_status("Sending...", "@PRIMARY")
         else:
-            self.status_label.setText("Finished / Stopped")
-            self.status_label.setStyleSheet("color: green;")
+            self.stats_panel.set_status("Stopped / Finished", "green")
+
+    def update_stats(self, count):
+        self.stats_panel.update_count(count)
+
+    def get_config(self):
+        cfg = self.conf_panel.get_settings()
+        cfg["fuzzing_enabled"] = self.fuzz_panel.is_fuzzing_enabled()
+        return cfg
