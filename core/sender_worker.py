@@ -29,14 +29,10 @@ class SenderWorker(QThread):
                 if self.count != -1 and sent_count >= self.count:
                     break
 
-
                 packet_to_send = self.original_packet
 
 
                 log.debug(f"Sending packet {packet_to_send} {self.iface}")
-                log.debug(packet_to_send.show2())
-                log.debug(packet_to_send.hex)
-                # sendp(packet_to_send, iface=self.iface, verbose=False)
                 sendp(packet_to_send, iface=self.iface)
 
                 sent_count += 1

@@ -97,7 +97,7 @@ ScapyFieldRow QLabel {
 /* Info Button */
 QToolButton {
     background-color: transparent;
-    border: 1px solid @BORDER;
+    border: 1px solid @SECONDARY;
     border-radius: 4px;
     color: @SECONDARY;
     font-weight: bold;
@@ -112,7 +112,7 @@ QToolButton:hover {
 /* INPUTS */
 QLineEdit, QDoubleSpinBox, QSpinBox, QComboBox {
     background-color: @BG_INPUT;
-    border: 1px solid @BORDER;
+    border: 1px solid @SECONDARY;
     border-radius: 3px;
     padding: 4px;
     color: @TEXT;

@@ -73,7 +73,7 @@ class EditorPage(QStackedWidget):
 
         self.splitter.addWidget(self.left_panel)
         self.splitter.addWidget(self.right_panel)
-        self.splitter.setSizes([200, 300])
+        self.splitter.setSizes([250,750])
 
         main_layout.addWidget(self.splitter)
 

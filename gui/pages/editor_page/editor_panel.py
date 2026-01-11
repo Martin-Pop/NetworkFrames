@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Signal, QEvent, Qt
 
 from scapy.fields import *
-import logging
+import logging, struct, socket
 
 log = logging.getLogger(__name__)
 
@@ -24,62 +24,75 @@ class ScapyFieldRow(QWidget):
 
     infoRequested = Signal(str, str, str) #layer, field, text
 
-    def __init__(self, cls_name,field_desc, current_val, parent=None):
+    def __init__(self, cls_name, field_desc, current_val, parent=None):
         super().__init__(parent)
         self.cls_name = cls_name
         self.field_desc = field_desc
         self.current_val = current_val
 
-        # Main Layout
+        # main
+        # [mid] [size] [info]
         self.layout = QHBoxLayout(self)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(10)
 
-        self.mid_container = QWidget(self)
-
+        # mid
+        # [    editor widget    ]
+        # [bottom_view_container]
+        self.mid_container = QWidget()
         self.mid_layout = QVBoxLayout(self.mid_container)
         self.mid_layout.setContentsMargins(0, 0, 0, 0)
-        self.mid_layout.setSpacing(10)
+        self.mid_layout.setSpacing(5)
 
-        # editor
+        # bottom
+        # [Bin display] [Hex display]
+        self.bottom_view_container = QWidget()
+        self.bottom_view_layout = QHBoxLayout(self.bottom_view_container)
+        self.bottom_view_layout.setContentsMargins(0, 0, 0, 0)
+        self.bottom_view_layout.setSpacing(5)
+
         self.editor_widget = None
 
-        # hex
-        self.hex_display = QLineEdit()
-        self.hex_display.setPlaceholderText("HEX")
-        self.hex_display.setReadOnly(True)
-        self.hex_display.setFixedWidth(80)
-
+        # Bin
         self.bin_display = QLineEdit()
         self.bin_display.setPlaceholderText("BIN")
         self.bin_display.setReadOnly(True)
+        self.bin_display.setFrame(False)
 
-        # size label
+        # Hex
+        self.hex_display = QLineEdit()
+        self.hex_display.setPlaceholderText("HEX")
+        self.hex_display.setReadOnly(True)
+        self.hex_display.setFixedWidth(100)
+
+        # Size Label
         size_str = self._get_size_string(field_desc)
         self.size_label = QLabel(size_str)
+        self.size_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+        # self.size_label.setFixedWidth(60)
 
-        # info button
+        # Info Button
         self.info_btn = QToolButton()
         self.info_btn.setText("?")
         self.info_btn.setFixedWidth(25)
         self.info_btn.setToolTip("Show field info")
         self.info_btn.clicked.connect(self._emit_info)
 
-        # factory
+        self.bottom_view_layout.addWidget(self.bin_display)
+        self.bottom_view_layout.addWidget(self.hex_display)
+
+        self.mid_layout.addWidget(self.bottom_view_container)
+
+        self.layout.addWidget(self.mid_container)
+        self.layout.addWidget(self.size_label)
+        self.layout.addWidget(self.info_btn)
+
         self._init_editor_by_type()
 
-        # event filter for focus
         if self.editor_widget:
             self.editor_widget.installEventFilter(self)
             for child in self.editor_widget.findChildren(QWidget):
                 child.installEventFilter(self)
-
-        self.mid_layout.addWidget(self.bin_display)
-
-        self.layout.addWidget(self.mid_container)
-        self.layout.addWidget(self.hex_display)
-        self.layout.addWidget(self.size_label)
-        self.layout.addWidget(self.info_btn)
 
     def eventFilter(self, source, event):
         if event.type() == QEvent.Type.FocusIn:
@@ -110,14 +123,8 @@ class ScapyFieldRow(QWidget):
 
     # factory init helpers
     def _init_editor_by_type(self):
-        f = self.field_desc
+        f = self._remove_emph(self.field_desc)
         val = self.current_val
-
-        log.debug(f'{f.name} {type(f)} {val}')
-
-        # remove emph wrapper
-        if isinstance(f, Emph):
-            f = f.fld
 
         # enum
         if isinstance(f, (EnumField, MultiEnumField)):
@@ -235,7 +242,6 @@ class ScapyFieldRow(QWidget):
         self._update_from_flags()
 
     def _setup_string(self, f, val):
-        # TODO: add validation
         self.editor_widget = QLineEdit()
         txt = ""
         if val is not None:
@@ -268,13 +274,34 @@ class ScapyFieldRow(QWidget):
 
     # update sync
     def _update_from_int(self, val):
-        """Updates Hex/Bin based on integer value."""
+        """Updates Hex/Bin based on integer value with padding."""
         try:
             int_val = int(val)
-            self.hex_display.setText(f"0x{int_val:X}")
-            self.bin_display.setText(f"{int_val:b}")
-        except:
+
+            total_bits = self._get_bits_count(self.field_desc, int_val)
+
+            if total_bits == 0:
+                total_bits = int_val.bit_length()
+
+            # bin - split by 8
+            raw_bin = f"{int_val:0{total_bits}b}"
+            chunk_size = 8
+            bin_chunks = [raw_bin[i:i + chunk_size] for i in range(0, len(raw_bin), chunk_size)]
+            formatted_bin = " ".join(bin_chunks)
+
+            self.bin_display.setText(formatted_bin)
+
+            # hex 4 bits = one symbol
+            # (total_bits + 3) // 4 => integer division with rounding up
+            hex_chars = (total_bits + 3) // 4
+            formatted_hex = f"0x{int_val:0{hex_chars}X}"
+
+            self.hex_display.setText(formatted_hex)
+
+        except Exception as e:
+            log.error(f"Format error: {e}")
             self.hex_display.setText("Err")
+            self.bin_display.setText("Err")
 
     def _update_from_flags(self):
         """Calculates int from checkboxes and updates displays."""
@@ -289,14 +316,59 @@ class ScapyFieldRow(QWidget):
         return total
 
     def _update_from_string(self, text):
-        """Updates Hex based on string/IP"""
+        """
+        Updates hex and bin displays, if its MAC or IP address its converted to int then handled with _update_from_int.
+        :param text: string to use
+        """
+        f = self._remove_emph(self.field_desc)
+
         try:
-            b = text.encode('utf-8')
+
+            # MAC
+            if isinstance(f, MACField):
+                clean_mac = text.replace(":", "").replace("-", "").replace(".", "")
+                if len(clean_mac) <= 12:  # Basic validation
+                    val_int = int(clean_mac, 16)
+                    self._update_from_int(val_int)
+                    return
+
+            # IPV4
+            if isinstance(f, IPField):
+                packed = socket.inet_aton(text)
+                val_int = struct.unpack("!I", packed)[0]  # ! = Network (Big) Endian
+                self._update_from_int(val_int)
+                return
+
+            # IPV6
+            if isinstance(f, (IP6Field, SourceIP6Field, DestIP6Field)):
+                packed = socket.inet_pton(socket.AF_INET6, text)
+                val_int = int.from_bytes(packed, byteorder='big')
+                self._update_from_int(val_int)
+                return
+
+            # raw text
+            if isinstance(text, str):
+                b = text.encode('utf-8', errors='ignore')
+            else:
+                b = bytes(text)
+
+
             h = b.hex().upper()
-            self.hex_display.setText(h)
-            self.bin_display.setText(f"-")  # Bin for string too long
-        except:
-            self.hex_display.setText("Err")
+            formatted_hex = " ".join([h[i:i + 2] for i in range(0, len(h), 2)])
+            self.hex_display.setText(formatted_hex)
+
+            if len(b) <= 8:  # max 8 bytes
+                int_val = int.from_bytes(b, byteorder='big')
+                total_bits = len(b) * 8
+                raw_bin = f"{int_val:0{total_bits}b}"
+                bin_chunks = [raw_bin[i:i + 8] for i in range(0, len(raw_bin), 8)]
+                self.bin_display.setText(" ".join(bin_chunks))
+            else:
+                self.bin_display.setText("(Too long)")
+
+        except Exception as e:
+            self.hex_display.setText("-")
+            self.bin_display.setText("-")
 
     # size calc
     def _get_size_string(self, f):
@@ -334,6 +406,42 @@ class ScapyFieldRow(QWidget):
             return (2 ** (f.sz * 8)) - 1
 
         return (2 ** 64) - 1
+
+    def _get_bits_count(self, f, val=None):
+        """
+        Gets exact number of bits in a field.
+        :param f: field
+        :param val: current value
+        :return: number of bits
+        """
+        if isinstance(f, BitField):
+            return f.size
+
+        if hasattr(f, "sz"):
+            size = f.sz
+            if isinstance(size, float) and not size.is_integer():
+                return int(size * 8)
+            return int(size * 8)
+
+        if val is not None:
+            if isinstance(val, int):
+                return val.bit_length()
+            if isinstance(val, str):
+                return len(val.encode('utf-8')) * 8
+            if isinstance(val, bytes):
+                return len(val) * 8
+
+        return 0  # Fallback
+
+    def _remove_emph(self, f):
+        """
+        Removes emphasis from a field if it exists.
+        :param f: field
+        :return: field without emphasis
+        """
+        if isinstance(f, Emph):
+            return f.fld
+        return f
 
 
 class FieldEditorWidget(QWidget):
