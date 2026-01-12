@@ -1,58 +1,23 @@
-/* GLOBAL */
+/* =================================================================================
+   GLOBAL SETTINGS & MAIN WINDOW
+   ================================================================================= */
 QWidget {
     font-family: "Segoe UI", Arial, sans-serif;
     font-size: 12px;
     color: @TEXT;
 }
 
-QLabel{
-    font-size: 15px;
-    color: @SECONDARY;
-}
-
 QMainWindow {
     background-color: @BG;
 }
 
-/* NAVIGATION BAR */
-#control_bar QPushButton {
-    background-color: @PRIMARY;
-    color: @PRIMARY_TEXT;
-    border-radius: 3px;
-    padding: 6px 12px;
-    font-size: 16px;
-    font-weight: bold;
+/* Headings and labels */
+QLabel {
+    color: @SECONDARY;
+    font-size: 13px; /* Slightly increased for readability */
 }
 
-#control_bar QPushButton:hover {
-    background-color: @PRIMARY_HOVER;
-}
-
-#control_bar QPushButton[selected="true"] {
-    background-color: @PRIMARY_HOVER;
-}
-
-/* --- PROTOCOL STACK --- */
-QFrame#protocol_stack_widget {
-    border: 2px solid @SECONDARY;
-    border-radius: 4px;
-    background-color: @BG;
-}
-
-QPushButton#protocol_stack_edit_button {
-    background-color: @SECONDARY;
-    color: @PRIMARY_TEXT;
-    font-size: 14px;
-    font-weight: bold;
-    border: none;
-    padding: 8px;
-    text-align: center;
-}
-QPushButton#protocol_stack_edit_button:hover {
-    background-color: @SECONDARY_HOVER;
-}
-
-
+/* Specific styling for prominent labels */
 QLabel#frame_id_label {
     font-size: 16px;
     font-weight: bold;
@@ -60,34 +25,165 @@ QLabel#frame_id_label {
     padding: 5px 0;
 }
 
-/* --- INFO WIDGET --- */
-#info_widget {
+/* =================================================================================
+   GENERIC PANELS & CONTAINERS
+   ================================================================================= */
+/* Unified style for all major panels (Sender, Info, etc.) */
+#info_widget,
+#sender_target,
+#sender_info,
+#sender_stats,
+#sender_fuzz,
+#sender_buttons,
+#sender_conf {
     background-color: @BG_SECONDARY;
-
     border-radius: 4px;
     color: @TEXT;
     padding: 5px;
+    border: 1px solid @BORDER; /* Added consistent border */
 }
 
-/* --- EDITOR PANEL --- */
-FieldEditorWidget QLabel {
-    font-size: 16px;
-    color: @SECONDARY;
-    margin-bottom: 5px;
-}
-
-
-#editor_scroll_content {
+/* Protocol Stack Frame */
+QFrame#protocol_stack_widget {
+    border: 2px solid @SECONDARY;
+    border-radius: 4px;
     background-color: @BG;
 }
 
-ScapyFieldRow QLabel {
-    color: @PRIMARY; 
-    font-weight: bold;
-    font-size: 13px;
+/* =================================================================================
+   UNIFIED INPUTS (LineEdits, SpinBoxes, ComboBoxes)
+   ================================================================================= */
+QLineEdit,
+QDoubleSpinBox,
+QSpinBox,
+QComboBox {
+    background-color: @BG_INPUT;
+    border: 1px solid @SECONDARY;
+    border-radius: 3px;
+    padding: 4px;
+    color: @TEXT; /* Changed from @BORDER to @TEXT for visibility */
+    font-family: "Consolas", monospace;
+    min-height: 20px;
 }
 
-/* Info Button */
+/* Focus State for all inputs */
+QLineEdit:focus,
+QDoubleSpinBox:focus,
+QSpinBox:focus,
+QComboBox:focus {
+    border: 1px solid @PRIMARY;
+    background-color: @INFO_BG;
+}
+
+/* Read-only State */
+QLineEdit[readOnly="true"] {
+    background-color: @BG_READONLY;
+    color: #6C757D;
+    border: 1px solid @BORDER; /* Softer border for readonly */
+}
+
+/* ComboBox Dropdown Button */
+QComboBox::drop-down {
+    subcontrol-origin: padding;
+    subcontrol-position: top right;
+    width: 20px;
+    border-left: 1px solid @SECONDARY;
+    border-top-right-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+
+/* Dropdown Arrow */
+QComboBox::down-arrow {
+    width: 10px;
+    height: 10px;
+}
+
+/* =================================================================================
+   SPINBOX ARROWS & BUTTONS
+   ================================================================================= */
+QSpinBox::up-button, QDoubleSpinBox::up-button,
+QSpinBox::down-button, QDoubleSpinBox::down-button {
+    subcontrol-origin: border;
+    width: 20px;
+    background-color: @BG;
+    border-left: 1px solid @SECONDARY;
+}
+
+/* Up Button Position */
+QSpinBox::up-button, QDoubleSpinBox::up-button {
+    subcontrol-position: top right;
+    border-bottom: 1px solid @SECONDARY;
+    border-top-right-radius: 3px;
+}
+
+/* Down Button Position */
+QSpinBox::down-button, QDoubleSpinBox::down-button {
+    subcontrol-position: bottom right;
+    border-bottom-right-radius: 3px;
+}
+
+/* Arrow Icons */
+QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {
+    width: 10px;
+    height: 10px;
+}
+
+QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
+    width: 10px;
+    height: 10px;
+}
+
+/* =================================================================================
+   BUTTONS
+   ================================================================================= */
+/* 1. Navigation Bar Buttons */
+#control_bar QPushButton {
+    background-color: @PRIMARY;
+    color: @PRIMARY_TEXT;
+    border-radius: 3px;
+    padding: 6px 12px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+}
+
+#control_bar QPushButton:hover,
+#control_bar QPushButton[selected="true"] {
+    background-color: @PRIMARY_HOVER;
+}
+
+/* 2. Common Action Buttons (Save, Load, etc.) */
+QPushButton[styleClass~='common_button'],
+QPushButton[styleClass~='send_button'] {
+    background-color: @PRIMARY;
+    color: @PRIMARY_TEXT;
+    border-radius: 4px;
+    padding: 6px 15px;
+    font-weight: bold;
+    border: none;
+    min-height: 25px;
+}
+
+QPushButton[styleClass~='common_button']:hover,
+QPushButton[styleClass~='send_button']:hover {
+    background-color: @PRIMARY_HOVER;
+}
+
+/* 3. Protocol Stack Edit Button */
+QPushButton#protocol_stack_edit_button {
+    background-color: @SECONDARY;
+    color: @PRIMARY_TEXT;
+    font-size: 14px;
+    font-weight: bold;
+    border: none;
+    padding: 8px;
+}
+
+QPushButton#protocol_stack_edit_button:hover {
+    background-color: @SECONDARY_HOVER;
+}
+
+/* 4. Small Info Button (?) */
 QToolButton {
     background-color: transparent;
     border: 1px solid @SECONDARY;
@@ -102,64 +198,33 @@ QToolButton:hover {
     border-color: @SECONDARY;
 }
 
-/* INPUTS */
-QLineEdit, QDoubleSpinBox, QSpinBox, QComboBox {
-    background-color: @BG_INPUT;
-    border: 1px solid @SECONDARY;
-    border-radius: 3px;
-    padding: 4px;
-    color: @BORDER;
-    font-family: "Consolas", monospace;
-}
-
-QLineEdit:focus, QDoubleSpinBox:focus, QSpinBox:focus, QComboBox:focus {
-    border: 1px solid @PRIMARY;
-    background-color: @INFO_BG;
-}
-
-QLineEdit[readOnly="true"] {
-    background-color: @BG_READONLY;
-    color: #6C757D;
-    border: 1px solid @BG_READONLY;
-}
-
-/* Arrows and Checkboxes */
-QDoubleSpinBox::up-button, QSpinBox::up-button,
-QDoubleSpinBox::down-button, QSpinBox::down-button {
-    background-color: @BG_READONLY;
-    border-left: 1px solid @BORDER;
-    width: 16px;
-}
-
-QDoubleSpinBox::up-button, QSpinBox::up-button {
-    border-bottom: 1px solid @BORDER;
-}
-
-QCheckBox::indicator {
+/* 5. Sender Toggle Buttons (Pause, etc.) */
+#sender_buttons QPushButton:checked {
+    background-color: @SECONDARY;
+    color: @PRIMARY_TEXT;
     border: 1px solid @BORDER;
+}
+
+/* =================================================================================
+   CHECKBOXES
+   ================================================================================= */
+QCheckBox::indicator {
+    border: 1px solid @SECONDARY;
     background: @BG;
+    width: 14px;
+    height: 14px;
+    border-radius: 2px;
 }
 
 QCheckBox::indicator:checked {
     background-color: @PRIMARY;
     border: 1px solid @PRIMARY;
+    image: url(:/icons/check.svg); /* If you have a check icon */
 }
 
-/* Common Buttons */
-QPushButton[styleClass~='common_button'] {
-    background-color: @PRIMARY;
-    color: @PRIMARY_TEXT;
-    border-radius: 4px;
-    padding: 6px 15px;
-    font-weight: bold;
-    border: none;
-}
-
-QPushButton[styleClass~='common_button']:hover {
-    background-color: @PRIMARY_HOVER;
-}
-
-/* FRAME LIST */
+/* =================================================================================
+   TREE WIDGET (Frame List)
+   ================================================================================= */
 #frame_page {
     border: 3px solid @SECONDARY;
     border-radius: 3px;
@@ -170,12 +235,12 @@ QTreeWidget {
     alternate-background-color: #BFBFBF;
     font-size: 15px;
     outline: 0;
+    border: none;
 }
 
 QTreeWidget::item {
     height: 25px;
     color: @TEXT;
-
     border-bottom: 1px solid @SECONDARY;
     border-right: 1px solid @SECONDARY;
     padding-left: 5px;
@@ -187,6 +252,7 @@ QTreeWidget::item:last {
 
 QTreeWidget::item:hover:!selected {
     background-color: @PRIMARY;
+    color: @PRIMARY_TEXT;
 }
 
 QTreeWidget::item:selected {
@@ -194,15 +260,24 @@ QTreeWidget::item:selected {
     color: @PRIMARY_TEXT;
 }
 
-/* HEADERS */
+/* Tree Branches (Arrows) */
+QTreeView::branch {
+    background-color: @SECONDARY;
+}
+
+QTreeView::branch:hover {
+    background-color: @SECONDARY_HOVER;
+}
+
+/* =================================================================================
+   HEADERS (Table/Tree)
+   ================================================================================= */
 QHeaderView::section {
     background-color: @SECONDARY;
     color: @PRIMARY_TEXT;
     padding: 5px;
-
     border-right: 2px solid @BORDER;
     border-bottom: 3px solid @BORDER;
-
     font-weight: bold;
     font-size: 15px;
 }
@@ -211,7 +286,9 @@ QHeaderView::section:last {
     border-right: none;
 }
 
-/* CONTEXT MENU */
+/* =================================================================================
+   CONTEXT MENU
+   ================================================================================= */
 QMenu {
     background-color: @BG;
     border: 2px solid @BORDER;
@@ -237,64 +314,77 @@ QMenu::separator {
     margin: 4px 10px;
 }
 
-/* SPLITTER */
+/* =================================================================================
+   SCROLLBARS & SPLITTERS
+   ================================================================================= */
+#editor_scroll_content {
+    background-color: @BG;
+}
+
 QSplitter::handle {
     background-color: @BG_SECONDARY;
 }
 
 QSplitter::handle:horizontal {
-    width: 4px;
-    image: none;
+    width: 6px;
+    margin: 0 2px;
 }
 
 QSplitter::handle:vertical {
-    height: 4px;
-    image: none;
+    height: 6px;
+    margin: 2px 0;
 }
 
 QSplitter::handle:hover {
     background-color: @PRIMARY_HOVER;
 }
 
-QSplitter::handle:pressed {
-    background-color: @PRIMARY;
-}
-
-/* SENDER PANELS */
-#sender_target, #sender_info,#sender_stats, #sender_fuzz, #sender_buttons, #sender_conf {
+/* =================================================================================
+   DIALOGS (Input Dialog)
+   ================================================================================= */
+QInputDialog {
     background-color: @BG_SECONDARY;
-    border-radius: 4px;
     color: @TEXT;
-    padding: 5px;
+    border: 1px solid @BORDER;
 }
 
-QPushButton[styleClass~='send_button'] {
-    height: 25px;
-    width: 80px;
-    background-color: @PRIMARY;
-    color: @PRIMARY_TEXT;
-    border-radius: 4px;
-    padding: 6px 15px;
+QInputDialog QLabel {
+    color: @TEXT;
     font-size: 14px;
     font-weight: bold;
-    border: none;
 }
 
-QPushButton[styleClass~='send_button']:hover {
-    background-color: @PRIMARY_HOVER;
+/* Buttons inside Dialog */
+QInputDialog QPushButton {
+    background-color: @BG;
+    border: 1px solid @BORDER;
+    color: @TEXT;
+    padding: 6px 15px;
+    border-radius: 4px;
+    min-width: 60px;
 }
 
-#sender_conf QComboBox::drop-down {
-    border: none;
-    width: 20px;
-}
-
-#sender_buttons QPushButton:hover {
+QInputDialog QPushButton:hover {
     background-color: @BG_HOVER;
+    border-color: @PRIMARY;
 }
 
-#sender_buttons QPushButton:checked {
-    background-color: @SECONDARY;
-    color: @PRIMARY_TEXT;
-    border: 1px solid @SECONDARY_DARK;
+QInputDialog QPushButton:pressed {
+    background-color: @PRIMARY;
+    color: white;
+}
+
+/* =================================================================================
+   EDITOR SPECIFICS
+   ================================================================================= */
+FieldEditorWidget QLabel {
+    font-size: 16px;
+    color: @SECONDARY;
+    margin-bottom: 5px;
+}
+
+ScapyFieldRow QLabel {
+    color: @PRIMARY;
+    font-weight: bold;
+    font-size: 13px;
 }
