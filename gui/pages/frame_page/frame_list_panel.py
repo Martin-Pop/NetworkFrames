@@ -22,7 +22,7 @@ class FrameListPanel(QTreeWidget):
     frameSelected = Signal(int)
     framesDeleted = Signal(list)
     addNewFrame = Signal(str, str) # path or empty string, uuid (group id) or empty string
-    sendRequest = Signal(int)
+    sendRequest = Signal(list)
     openFuzzingRequest = Signal(int)
 
     def __init__(self, parent=None):
@@ -193,6 +193,11 @@ class FrameListPanel(QTreeWidget):
                 # save_grp.triggered.connect(self._save_group_action)
                 menu.addAction(save_grp)
 
+                # load pcap to group
+                load_here = QAction('Load PCAP Here')
+                load_here.triggered.connect(lambda: self._get_pcap_file(current_id))
+                menu.addAction(load_here)
+
                 menu.addSeparator()
 
                 # add new to group
@@ -200,10 +205,9 @@ class FrameListPanel(QTreeWidget):
                 add_new.triggered.connect(lambda: self.addNewFrame.emit('', current_id))
                 menu.addAction(add_new)
 
-                # load pcap to group
-                load_here = QAction('Load PCAP Here')
-                load_here.triggered.connect(lambda: self._get_pcap_file(current_id))
-                menu.addAction(load_here)
+                to_sender = QAction("To Sender")
+                to_sender.triggered.connect(self._send_selection)
+                menu.addAction(to_sender)
 
                 menu.addSeparator()
 
@@ -230,8 +234,8 @@ class FrameListPanel(QTreeWidget):
                 if count == 1:
                     pkt_id = item.data(0, ROLE_ID)
 
-                    to_sender = QAction("Send to Sender")
-                    to_sender.triggered.connect(lambda: self.sendRequest.emit(pkt_id))
+                    to_sender = QAction("To Sender")
+                    to_sender.triggered.connect(lambda: self.sendRequest.emit([pkt_id]))
                     menu.addAction(to_sender)
 
                     fuzz_act = QAction("Fuzz")
@@ -247,6 +251,22 @@ class FrameListPanel(QTreeWidget):
                 menu.addAction(delete_action)
 
         menu.exec(self.mapToGlobal(position))
+
+    def _send_selection(self):
+        selected_items = self.selectedItems()
+        item = selected_items[0]
+        is_group = item.data(0, ROLE_IS_GROUP) is True
+        ids = []
+        if is_group:
+            for i in range(item.childCount()):
+                child = item.child(i)
+                ids.append(child.data(0, ROLE_ID))
+        else:
+            for _item in selected_items:
+                ids.append(_item.data(0, ROLE_ID))
+
+        self.sendRequest.emit(ids)
+
 
     def _create_empty_group(self):
         group_item = self._create_group()

@@ -14,25 +14,30 @@ class SenderController(QObject):
         self._frame_manager = frame_manager
 
         self._worker = None
-        self._current_frame_id = None
+        self._current_frame_ids = None
 
         # signals
-        # self._sender_page.startClicked.connect(self._start_sending)
-        # self._sender_page.stopClicked.connect(self._stop_sending)
+        self._sender_page.startClicked.connect(self._start_sending)
+        self._sender_page.stopClicked.connect(self._stop_sending)
         # self._sender_page.exitActivated.connect(self._close_sender)
 
         self._sender_page.set_interfaces(get_interfaces())
 
-    def load_frame(self, frame_id):
+    def load_frames(self, ids):
         """
-        Saves the frame id and updates UI
-        :param frame_id: frame id
+        Saves the frame ids and updates UI
+        :param ids: ids to save
+        :return:
         """
-        log.debug(f"Loading: {frame_id}")
-        self._current_frame_id = frame_id
-        frame = self._frame_manager.get_frame(frame_id)
-        if frame:
-            self._sender_page.set_frame_info(str(frame.get_info()))
+        log.debug(f"Loading: {ids}")
+        self._current_frame_ids = ids
+        if len(ids) == 1:
+            frame = self._frame_manager.get_frame(ids[0])
+            if frame:
+                self._sender_page.set_frame_info(str(frame.get_info()))
+        else:
+            self._sender_page.set_frame_info(str(ids))
+
             # self._sender_page.update_counter(0)
             # self._sender_page.set_running_state(False)
 
@@ -42,26 +47,29 @@ class SenderController(QObject):
         """
         Starts sending process, gets the frame from frame_manager by saved id
         """
-        if not self._current_frame_id:
+        if not self._current_frame_ids:
             self._sender_page.show_error("No frame selected")
             return
 
-        frame = self._frame_manager.get_frame(self._current_frame_id)
-        if not frame or not frame.scapy:
-            self._sender_page.show_error("Invalid frame data")
-            return
 
-        scapy_pkt = frame.scapy
+        scapy_pkts = []
+        log.debug(self._current_frame_ids)
+        for frame_id in self._current_frame_ids:
+            frame = self._frame_manager.get_frame(frame_id)
+            if not frame or not frame.scapy:
+                self._sender_page.show_error("Invalid frame data")
+                continue
+            scapy_pkts.append(frame.scapy)
 
         # get settings
-        iface = self._sender_page.get_selected_interface()
-        count = self._sender_page.get_count()
-        interval = self._sender_page.get_interval()
-        fuzzing = self._sender_page.is_fuzzing_enabled()
+        config = self._sender_page.get_config()
+        iface = config.get("interface")
+        count = config.get("count")
+        interval = config.get("interval")
 
-        log.debug(f"Starting sender: ID={self._current_frame_id}, Iface={iface}, Count={count}")
+        log.debug(f"Starting sender: frame_count={len(scapy_pkts)}, Iface={iface}, Count={count}")
 
-        self._worker = SenderWorker(scapy_pkt, iface, count, interval, fuzzing)
+        self._worker = SenderWorker(scapy_pkts, iface, count, interval)
         self._worker.packetSent.connect(self._sender_page.update_counter)
         self._worker.finished.connect(self._on_sending_finished)
         self._worker.errorOccurred.connect(self._on_worker_error)

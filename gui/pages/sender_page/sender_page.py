@@ -79,10 +79,10 @@ class SenderPage(QWidget):
     def _connect_internals(self):
         self.conf_panel.interfaceChanged.connect(self._on_interface_changed)
 
-        self.btns_panel.startClicked.connect(self.startClicked.emit)
-        self.btns_panel.stopClicked.connect(self.stopClicked.emit)
-        self.btns_panel.pauseClicked.connect(self.pauseClicked.emit)
-        self.btns_panel.backClicked.connect(self.backClicked.emit)
+        self.btns_panel.startClicked.connect(self.startClicked)
+        self.btns_panel.stopClicked.connect(self.stopClicked)
+        self.btns_panel.pauseClicked.connect(self.pauseClicked)
+        self.btns_panel.backClicked.connect(self.backClicked)
 
 
     def set_interfaces(self, int_list):
@@ -117,7 +117,10 @@ class SenderPage(QWidget):
         else:
             self.stats_panel.set_status("Stopped / Finished", "green")
 
-    def update_stats(self, count):
+    def show_error(self, message):
+        self.stats_panel.set_status(message, "red")
+
+    def update_counter(self, count):
         self.stats_panel.update_count(count)
 
     def get_config(self):

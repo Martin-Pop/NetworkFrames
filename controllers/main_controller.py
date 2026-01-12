@@ -30,7 +30,7 @@ class MainController(QObject):
         # frames
         self._frame_page_controller = FramePageController(self._window.frame_page, self._frame_manager)
         self._frame_page_controller.onFrameSelected.connect(self._on_editor_open)
-        self._frame_page_controller.sendRequest.connect(self._on_send_frame_request)
+        self._frame_page_controller.sendRequest.connect(self._on_send_frames_request)
 
         # sender
         self._sender_controller = SenderController(self._window.sender_page, self._frame_manager)
@@ -51,12 +51,11 @@ class MainController(QObject):
         """
         self._window.switch_to('frames')
 
-    def _on_send_frame_request(self, frame_id):
+    def _on_send_frames_request(self, ids):
         """
         Opens sender
-        :param frame_id: id of frame to send
         """
-        self._sender_controller.load_frame(frame_id)
+        self._sender_controller.load_frames(ids)
         self._window.switch_to('sender')
 
     def _on_sender_closed(self):

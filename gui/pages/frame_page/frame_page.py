@@ -10,7 +10,7 @@ class FramePage(QFrame):
     frameSelected = Signal(int)  # when frame gets selected
     framesDeleted = Signal(list)  # when frames get deleted
     addNewFrame = Signal(str, str)  # when new frame is added
-    sendRequest = Signal(int)
+    sendRequest = Signal(list)
 
     def __init__(self, parent=None):
         super(FramePage, self).__init__(parent)

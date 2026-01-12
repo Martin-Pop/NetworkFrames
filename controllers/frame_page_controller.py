@@ -5,7 +5,7 @@ from PySide6.QtCore import QObject, Signal
 class FramePageController(QObject):
 
     onFrameSelected = Signal(int)
-    sendRequest = Signal(int)
+    sendRequest = Signal(list)
 
     def __init__(self, frame_page, frame_manager):
         super().__init__()

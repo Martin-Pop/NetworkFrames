@@ -99,6 +99,7 @@ class SenderInfoPanel(QFrame):
 
     def _init_ui(self):
         self.setObjectName('sender_info')
+        self.setContentsMargins(5,0,0,0)
 
         layout = QVBoxLayout(self)
 
