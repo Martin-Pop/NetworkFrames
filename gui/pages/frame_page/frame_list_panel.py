@@ -7,6 +7,8 @@ from PySide6.QtCore import Qt, Signal, QPoint
 
 from gui.utils import get_file
 
+import uuid
+
 # ROLES
 ROLE_ID = Qt.ItemDataRole.UserRole + 1
 ROLE_IS_GROUP = Qt.ItemDataRole.UserRole + 2
@@ -18,8 +20,8 @@ class FrameListPanel(QTreeWidget):
     """
 
     frameSelected = Signal(int)
-    framesDeleted = Signal(list)  # Returns list of IDs
-    addNewFrame = Signal(str)
+    framesDeleted = Signal(list)
+    addNewFrame = Signal(str, str) # path or empty string, uuid (group id) or empty string
     sendRequest = Signal(int)
     openFuzzingRequest = Signal(int)
 
@@ -27,6 +29,7 @@ class FrameListPanel(QTreeWidget):
         super().__init__(parent)
 
         self.item_map = {}  # frame_id : QTreeWidgetItem
+        self.group_map = {}
 
         columns = ["Number", "Source", "Destination", "Protocol", "Length", "Info"]
         self.setColumnCount(len(columns))
@@ -61,15 +64,23 @@ class FrameListPanel(QTreeWidget):
         self.customContextMenuRequested.connect(self._open_context_menu)
         self.itemDoubleClicked.connect(self._on_item_clicked)
 
-    def add_frame(self, frame):
+    def add_frame(self, frame, group_id):
         """
         Adds new frame to top
         :param frame: fram to add
+        :param group_id: group id to add new frame to, empty string for no group
         """
-        item = QTreeWidgetItem(self)
+        item = QTreeWidgetItem()
         self._setup_item_appearance(item)
         self._bind_frame_data(item, frame)
         self.item_map[frame.id] = item
+
+        if group_id and group_id in self.group_map:
+            target_group = self.group_map[group_id]
+            target_group.addChild(item)
+            target_group.setExpanded(True)
+        else:
+            self.addTopLevelItem(item)
 
         # update
         self._update_decoration_state()
@@ -94,6 +105,11 @@ class FrameListPanel(QTreeWidget):
         group_item.setForeground(5, QBrush(QColor("#E8834A")))
 
         group_item.setData(0, ROLE_IS_GROUP, True)
+
+        virtual_id = str(uuid.uuid4())
+        group_item.setData(0, ROLE_ID, virtual_id)
+
+        self.group_map[virtual_id] = group_item
 
         return group_item
 
@@ -141,7 +157,6 @@ class FrameListPanel(QTreeWidget):
         if self.rootIsDecorated() != has_groups:
             self.setRootIsDecorated(has_groups)
 
-
     def _open_context_menu(self, position: QPoint):
         """
         Opens context menu
@@ -150,13 +165,13 @@ class FrameListPanel(QTreeWidget):
         selected_items = self.selectedItems()
         menu = QMenu()
 
-        # no selection
+        # no selection (Root level)
         if not selected_items:
             add_new = QAction('Add New')
-            add_new.triggered.connect(lambda: self.addNewFrame.emit(''))
+            add_new.triggered.connect(lambda: self.addNewFrame.emit('', ''))
 
             load_pcap = QAction('Load from PCAP')
-            load_pcap.triggered.connect(self._get_pcap_file)
+            load_pcap.triggered.connect(lambda: self._get_pcap_file())
 
             create_group = QAction('Create Group')
             create_group.triggered.connect(lambda: self._create_empty_group())
@@ -165,10 +180,12 @@ class FrameListPanel(QTreeWidget):
             menu.addAction(load_pcap)
             menu.addAction(create_group)
 
-        else: # selection
+        else:  # selection
             item = selected_items[0]
             is_group = item.data(0, ROLE_IS_GROUP) is True
             count = len(selected_items)
+
+            current_id = item.data(0, ROLE_ID) # frame id or group id
 
             if is_group and count == 1:
                 # save group
@@ -179,10 +196,14 @@ class FrameListPanel(QTreeWidget):
                 menu.addSeparator()
 
                 # add new to group
-                # TODO: make this work
                 add_new = QAction('Add New Packet Here')
-                add_new.triggered.connect(lambda: self.addNewFrame.emit(''))
+                add_new.triggered.connect(lambda: self.addNewFrame.emit('', current_id))
                 menu.addAction(add_new)
+
+                # load pcap to group
+                load_here = QAction('Load PCAP Here')
+                load_here.triggered.connect(lambda: self._get_pcap_file(current_id))
+                menu.addAction(load_here)
 
                 menu.addSeparator()
 
@@ -278,7 +299,7 @@ class FrameListPanel(QTreeWidget):
 
     def _delete_selection(self):
         """
-        Delets selection
+        Deletes selection
         """
         items = self.selectedItems()
         if not items: return
@@ -286,15 +307,20 @@ class FrameListPanel(QTreeWidget):
         ids_to_delete = []
 
         for item in items:
-            #group
+            # group
             if item.data(0, ROLE_IS_GROUP):
                 for i in range(item.childCount()):
                     child = item.child(i)
                     ids_to_delete.append(child.data(0, ROLE_ID))
 
+                virtual_id = item.data(0, ROLE_ID)
+                if virtual_id in self.group_map:
+                    del self.group_map[virtual_id]
+
                 # remove visual group
                 idx = self.indexOfTopLevelItem(item)
                 self.takeTopLevelItem(idx)
+
 
             # normal frame
             else:
@@ -329,11 +355,11 @@ class FrameListPanel(QTreeWidget):
         pkt_id = item.data(0, ROLE_ID)
         self.frameSelected.emit(pkt_id)
 
-    def _get_pcap_file(self):
+    def _get_pcap_file(self, parent_id=None):
         """
-       Gets pcap file and emits signal with its path.
+       Gets pcap file and emits signal with its path and parent group id.
        """
         file_filter = "Packet Capture (*.pcap)"
         file_path = get_file(self, file_filter)
         if file_path:
-            self.addNewFrame.emit(file_path)
+            self.addNewFrame.emit(file_path, parent_id if parent_id else '')
