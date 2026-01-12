@@ -65,7 +65,7 @@ class NetworkFrame(QObject):
             layer_cls = getattr(scapy_all, layer_name, None)
 
             if layer_cls is None:
-                log(f"Warning: Unknown Scapy layer '{layer_name}', skipping.")
+                log.warning(f"Warning: Unknown Scapy layer '{layer_name}', skipping.")
                 continue
 
             layer_instance = None
