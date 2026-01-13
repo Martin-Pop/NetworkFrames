@@ -1,8 +1,9 @@
 import logging
 import sys
 import traceback
-from PySide6.QtWidgets import QMessageBox, QApplication
-from PySide6.QtCore import QObject, Signal
+from PySide6.QtWidgets import QMessageBox, QApplication, QStyle
+from PySide6.QtCore import QObject, Signal, QTimer
+
 
 LOG_FORMAT = (
     "[%(asctime)s] "
@@ -11,25 +12,34 @@ LOG_FORMAT = (
     "%(message)s"
 )
 
-class QtLogErrorHandler(logging.Handler, QObject):
+AUTO_CLOSE_TIMER = 2500 #ms
+
+
+class QtLogHandler(logging.Handler, QObject):
     """
-    Custom logging handler that emits a signal when an error occurs.
-    Signal is connected to a function that displays the error in a message box.
+    Custom logging handler that emits a signal when an event occurs.
+    Signal is connected to a function that displays the info in a message box.
     """
 
-    show_error_signal = Signal(str, str, str) # uses signal so its thread safe
+    show_error_signal = Signal(str, str, str)  # uses signal so its thread safe
+    show_notification_signal = Signal(int, str, str)  # level, title, body
 
     def __init__(self):
         logging.Handler.__init__(self)
         QObject.__init__(self)
-        self.show_error_signal.connect(self._show_message_box)
+        self.show_error_signal.connect(self._show_error_box)
+        self.show_notification_signal.connect(self._show_notification_box)
 
     def emit(self, record):
         """
-        Handles log records, only if its error+
+        Handles log records.
+        ERROR+ -> Detailed Error Box
+        WARNING -> Warning Box (Manual close)
+        INFO -> Info Box (Auto close)
         :param record: log record
         :return:
         """
+        # error
         if record.levelno >= logging.ERROR:
             msg_title = "Error"
             msg_body = record.getMessage()
@@ -40,7 +50,14 @@ class QtLogErrorHandler(logging.Handler, QObject):
 
             self.show_error_signal.emit(msg_title, msg_body, msg_detail)
 
-    def _show_message_box(self, title, body, detail):
+        # info and warning
+        elif record.levelno >= logging.INFO:
+            msg_body = record.getMessage()
+            msg_title = record.levelname.capitalize()
+
+            self.show_notification_signal.emit(record.levelno, msg_title, msg_body)
+
+    def _show_error_box(self, title, body, detail):
         """
         Shows message box with error. Must run in main thread
         :param title: message title
@@ -49,6 +66,8 @@ class QtLogErrorHandler(logging.Handler, QObject):
         """
 
         active_window = QApplication.activeWindow()
+        if not active_window:
+             return
 
         msg_box = QMessageBox(active_window)
         msg_box.setIcon(QMessageBox.Icon.Critical)
@@ -61,6 +80,32 @@ class QtLogErrorHandler(logging.Handler, QObject):
 
         msg_box.exec()
 
+    def _show_notification_box(self, level, title, body):
+        """
+        Shows notification. auto close for INFO.
+        """
+        active_window = QApplication.activeWindow()
+
+        if not active_window:
+             return
+
+        style = QApplication.style()
+
+        msg_box = QMessageBox(active_window)
+        msg_box.setWindowTitle(title)
+        msg_box.setText(body)
+
+        if level == logging.WARNING:
+            icon = style.standardIcon(QStyle.StandardPixmap.SP_MessageBoxWarning)
+            msg_box.setIconPixmap(icon.pixmap(32, 32))
+        else:
+            icon = style.standardIcon(QStyle.StandardPixmap.SP_MessageBoxInformation)
+            msg_box.setIconPixmap(icon.pixmap(32, 32))
+            QTimer.singleShot(AUTO_CLOSE_TIMER, msg_box.accept)
+
+        msg_box.exec()
+
+
 def _global_exception_hook(exc_type, exc_value, exc_traceback):
     """
     Sets up global exception hook to handle all exceptions except KeyboardInterrupt
@@ -70,7 +115,7 @@ def _global_exception_hook(exc_type, exc_value, exc_traceback):
     :return: early if its KeyboardInterrupt
     """
 
-    #ignore keyboard interrupt
+    # ignore keyboard interrupt
     if issubclass(exc_type, KeyboardInterrupt):
         sys.__excepthook__(exc_type, exc_value, exc_traceback)
         return
@@ -86,7 +131,7 @@ def setup_logger(level=logging.DEBUG, log_file="app.log"):
     root.setLevel(level)
 
     if root.handlers:
-        return # no dupes from calling again
+        return  # no dupes from calling again
 
     console_handler = logging.StreamHandler(sys.stdout)
     formatter = logging.Formatter(
@@ -102,8 +147,8 @@ def setup_logger(level=logging.DEBUG, log_file="app.log"):
     file_handler.setFormatter(formatter)
     root.addHandler(file_handler)
 
-    qt_handler = QtLogErrorHandler()
-    qt_handler.setLevel(logging.ERROR)
+    qt_handler = QtLogHandler()
+    qt_handler.setLevel(logging.INFO)
     qt_handler.setFormatter(logging.Formatter('%(message)s'))
 
     root.addHandler(qt_handler)

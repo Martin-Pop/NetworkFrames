@@ -33,7 +33,7 @@ class FrameListPanel(QTreeWidget):
         self.group_map = {}
         self._context_menu_options = {}
 
-        columns = ["Number", "Source", "Destination", "Protocol", "Length", "Info"]
+        columns = ["ID", "Source", "Destination", "Protocol", "Length", "Info"]
         self.setColumnCount(len(columns))
         self.setHeaderLabels(columns)
         self.setObjectName("packet_list")
@@ -98,8 +98,7 @@ class FrameListPanel(QTreeWidget):
             return None
 
         group_item = QTreeWidgetItem(self)
-        group_item.setText(0, "GRP")
-        group_item.setText(5, name)
+        group_item.setText(0, name.strip())
 
         font = group_item.font(5)
         font.setBold(True)
