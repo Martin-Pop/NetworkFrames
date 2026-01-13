@@ -1,5 +1,5 @@
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget, QFileDialog
+from PySide6.QtWidgets import QLabel, QVBoxLayout, QWidget
 
 
 def setup_placeholder(label_text):
@@ -11,11 +11,3 @@ def setup_placeholder(label_text):
 
     return widget
 
-def get_file(parent_widget, file_filter):
-    file_path, _ = QFileDialog.getOpenFileName(
-        parent_widget,
-        "Select a file",
-        "",
-        file_filter
-    )
-    return file_path

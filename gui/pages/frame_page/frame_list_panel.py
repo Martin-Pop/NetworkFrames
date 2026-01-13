@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QAction, QColor, QBrush
 from PySide6.QtCore import Qt, Signal, QPoint
 
-from gui.utils import get_file
+from core.input_output.files import get_file, save_file
 
 import uuid
 
@@ -21,7 +21,7 @@ class FrameListPanel(QTreeWidget):
 
     frameSelected = Signal(int)
     framesDeleted = Signal(list)
-    framesSaved = Signal(list)
+    framesSaved = Signal(str, list) # path and list of ids
     addNewFrame = Signal(str, str)  # path or empty string, uuid (group id) or empty string
     sendRequest = Signal(list)
     openFuzzingRequest = Signal(int)
@@ -246,10 +246,10 @@ class FrameListPanel(QTreeWidget):
                     menu.addAction(create_grp)
                     menu.addSeparator()
 
-                # save
-                save_grp = QAction("Save selection as PCAP")
-                save_grp.triggered.connect(lambda: self._save_selection(selected_items))
-                menu.addAction(save_grp)
+                    # save
+                    save_grp = QAction("Save selection as PCAP")
+                    save_grp.triggered.connect(lambda: self._save_selection(selected_items))
+                    menu.addAction(save_grp)
 
                 # delete
                 del_text = "Delete" if count == 1 else f"Delete Selected ({count})"
@@ -258,6 +258,22 @@ class FrameListPanel(QTreeWidget):
                 menu.addAction(delete_action)
 
         menu.exec(self.mapToGlobal(position))
+
+    def _save_group(self, group_item):
+        path = save_file(self, "Packet Capture (*.pcap)")
+        if path:
+            ids = []
+            for i in range(group_item.childCount()):
+                ids.append(group_item.child(i).data(0, ROLE_ID))
+            self.framesSaved.emit(path, ids)
+
+    def _save_selection(self, selected_items):
+        path = save_file(self, "Packet Capture (*.pcap)")
+        if path:
+            ids = []
+            for item in selected_items:
+                ids.append(item.data(0, ROLE_ID))
+            self.framesSaved.emit(path, ids)
 
     def _send_mixed_selection(self, selected_items):
         """

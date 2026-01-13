@@ -17,10 +17,11 @@ class FramePageController(QObject):
         self._frame_page.addNewFrame.connect(self._on_new_frame_added_request)
         self._frame_page.frameSelected.connect(self.onFrameSelected)
         self._frame_page.sendRequest.connect(self.sendRequest)
+        self._frame_page.framesSaved.connect(self._save_to_pcap_requested)
 
 
     def _save_to_pcap_requested(self, file_path, ids):
-        write_pcap_file(file_path, ids, self._frame_page)
+        write_pcap_file(file_path, ids, self._frame_manager)
 
 
     def _on_new_frame_added_request(self, file_path, group_id):
