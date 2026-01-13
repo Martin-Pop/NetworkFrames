@@ -375,6 +375,45 @@ QInputDialog QPushButton:pressed {
 }
 
 /* =================================================================================
+   MESSAGE BOX (Error & Info Popups)
+   ================================================================================= */
+QMessageBox {
+    background-color: @BG_SECONDARY;
+    border: 1px solid @BORDER;
+}
+
+QMessageBox QLabel {
+    color: @TEXT;
+    font-size: 13px;
+    background-color: transparent;
+}
+
+QMessageBox QPushButton {
+    background-color: @BG;
+    color: @TEXT;
+    border: 1px solid @BORDER;
+    border-radius: 4px;
+    padding: 6px 20px;
+    min-width: 60px;
+}
+
+QMessageBox QPushButton:hover {
+    background-color: @BG_HOVER;
+    border-color: @PRIMARY;
+}
+
+QMessageBox QPushButton:pressed {
+    background-color: @PRIMARY;
+    color: @PRIMARY_TEXT;
+}
+
+QMessageBox QTextEdit {
+    background-color: @BG;
+    color: @TEXT;
+    border: 1px solid @BORDER;
+}
+
+/* =================================================================================
    EDITOR SPECIFICS
    ================================================================================= */
 FieldEditorWidget QLabel {
