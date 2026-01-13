@@ -4,7 +4,6 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Signal, Qt
 
 from gui.pages.sender_page.sender_conf_panel import SenderConfPanel, SenderInfoPanel
-from gui.pages.sender_page.sender_fuzz_panel import SenderFuzzPanel
 from gui.pages.sender_page.sender_stats_panel import SenderStatsPanel
 from gui.pages.sender_page.sender_buttons_panel import SenderButtonsPanel
 
@@ -59,10 +58,6 @@ class SenderPage(QWidget):
 
         self.main_layout.addWidget(splitter)
 
-        # fuzzing
-        self.fuzz_panel = SenderFuzzPanel()
-        self.main_layout.addWidget(self.fuzz_panel)
-
         self.main_layout.addStretch()
 
         # 4. actions Stats | Buttons
@@ -110,7 +105,6 @@ class SenderPage(QWidget):
     def set_running_state(self, is_running):
         self.btns_panel.set_running_state(is_running)
         self.conf_panel.set_locked(is_running)
-        self.fuzz_panel.set_locked(is_running)
 
         if is_running:
             self.stats_panel.set_status("Sending...", "@PRIMARY")
@@ -125,5 +119,4 @@ class SenderPage(QWidget):
 
     def get_config(self):
         cfg = self.conf_panel.get_settings()
-        cfg["fuzzing_enabled"] = self.fuzz_panel.is_fuzzing_enabled()
         return cfg

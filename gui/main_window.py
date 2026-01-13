@@ -5,6 +5,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from .pages.editor_page.editor_page import EditorPage
 from .pages.frame_page.frame_page import FramePage
+from .pages.fuzzing_page.fuzzing_page import FuzzingPage
 from .pages.sender_page.sender_page import SenderPage
 
 
@@ -49,6 +50,10 @@ class MainWindow(QMainWindow):
         #editor
         self.editor_page = EditorPage()
         self._init_page(self.editor_page, 'editor')
+
+        #fuzzer
+        self.fuzzing_page = FuzzingPage()
+        self._init_page(self.fuzzing_page, 'fuzzing')
 
         #sender
         self.sender_page = SenderPage()

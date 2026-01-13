@@ -2,6 +2,7 @@ from PySide6.QtCore import QObject, Qt, Signal
 
 from controllers.editor_controller import EditorController
 from controllers.frame_page_controller import FramePageController
+from controllers.fuzzing_controller import FuzzingController
 from controllers.sender_controller import SenderController
 from core.frame_manager import FrameManager
 from core.protocol_stack import ProtocolStack
@@ -23,9 +24,12 @@ class MainController(QObject):
         self._frame_manager = FrameManager()
         self._protocol_stack = ProtocolStack(self._builder)
 
-        #editor controller
+        #editor
         self._editor_controller = EditorController(self._window.editor_page, self._frame_manager,self._builder, self._protocol_stack)
         self._editor_controller.editorClosed.connect(self._on_editor_close)
+
+        #fuzzing
+        self._fuzzing_controller = FuzzingController(self._window.fuzzing_page, self._frame_manager)
 
         # frames
         self._frame_page_controller = FramePageController(self._window.frame_page, self._frame_manager)
