@@ -26,15 +26,17 @@ class MainController(QObject):
 
         #editor
         self._editor_controller = EditorController(self._window.editor_page, self._frame_manager,self._builder, self._protocol_stack)
-        self._editor_controller.editorClosed.connect(self._on_editor_close)
+        self._editor_controller.editorClosed.connect(self._switch_to_frames_page)
 
         #fuzzing
         self._fuzzing_controller = FuzzingController(self._window.fuzzing_page, self._frame_manager)
+        self._fuzzing_controller.fuzzingExit.connect(self._switch_to_frames_page)
 
         # frames
         self._frame_page_controller = FramePageController(self._window.frame_page, self._frame_manager)
         self._frame_page_controller.onFrameSelected.connect(self._on_editor_open)
         self._frame_page_controller.sendRequest.connect(self._on_send_frames_request)
+        self._frame_page_controller.openFuzzingRequest.connect(self._on_fuzzing_requested)
 
         # sender
         self._sender_controller = SenderController(self._window.sender_page, self._frame_manager)
@@ -48,10 +50,9 @@ class MainController(QObject):
         self._editor_controller.open(_id)
         self._window.switch_to('editor')
 
-    def _on_editor_close(self):
+    def _switch_to_frames_page(self):
         """
-        Closes editor by switching to frames page
-        :return:
+        Switches page to frames (main page)
         """
         self._window.switch_to('frames')
 
@@ -68,3 +69,7 @@ class MainController(QObject):
         :return:
         """
         self._window.switch_to('frames')
+
+    def _on_fuzzing_requested(self, frame_id):
+        self._fuzzing_controller.load_fuzzer(frame_id)
+        self._window.switch_to('fuzzing')

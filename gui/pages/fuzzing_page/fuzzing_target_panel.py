@@ -65,6 +65,9 @@ class FuzzingTargetPanel(QWidget):
             if current_layer.name == "NoPayload":
                 break
 
+    def reset(self):
+        self.tree.clear()
+
     def _on_item_clicked(self, item, col):
         """
         Handles clicking on a specific field.

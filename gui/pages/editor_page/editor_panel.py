@@ -553,6 +553,7 @@ class FieldEditorWidget(QWidget):
         scroll_area.setWidget(content_widget)
         self.stack.addWidget(scroll_area)
         self.pages[cls_name] = scroll_area
+        self.switch_to('None')
 
     def switch_to(self, protocol_name):
         """

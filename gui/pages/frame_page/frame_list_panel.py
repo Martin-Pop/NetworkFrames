@@ -33,7 +33,7 @@ class FrameListPanel(QTreeWidget):
         self.group_map = {}
         self._context_menu_options = {}
 
-        columns = ["ID", "Source", "Destination", "Protocol", "Length", "Info"]
+        columns = ["ID/GROUP", "Source", "Destination", "Protocol", "Length", "Info"]
         self.setColumnCount(len(columns))
         self.setHeaderLabels(columns)
         self.setObjectName("packet_list")
@@ -52,7 +52,7 @@ class FrameListPanel(QTreeWidget):
 
         # header sizes
         header = self.header()
-        header.resizeSection(0, 80)
+        header.resizeSection(0, 120)
         header.resizeSection(1, 140)
         header.resizeSection(2, 140)
         header.resizeSection(3, 80)
@@ -86,6 +86,36 @@ class FrameListPanel(QTreeWidget):
 
         # update
         self._update_decoration_state()
+
+    def add_frames(self, frame_list, group_id):
+        """
+        Optimized method to add multiple frames at once.
+        Prevents UI flickering and freezing.
+        :param frame_list: list of frame objects
+        :param group_id: group id to add frames to
+        """
+        self.setUpdatesEnabled(False)
+
+        target_parent = self
+        if group_id and group_id in self.group_map:
+            target_parent = self.group_map[group_id]
+
+        items = []
+        for frame in frame_list:
+            item = QTreeWidgetItem()
+            self._setup_item_appearance(item)
+            self._bind_frame_data(item, frame)
+            self.item_map[frame.id] = item
+            items.append(item)
+
+        if target_parent == self:
+            self.addTopLevelItems(items)
+        else:
+            target_parent.addChildren(items)
+            target_parent.setExpanded(True)
+
+        self._update_decoration_state()
+        self.setUpdatesEnabled(True)
 
     def _create_group(self):
         """
@@ -172,13 +202,17 @@ class FrameListPanel(QTreeWidget):
             add_new.triggered.connect(lambda: self.addNewFrame.emit('', ''))
 
             load_pcap = QAction('Load from PCAP')
-            load_pcap.triggered.connect(lambda: self._get_pcap_file())
+            load_pcap.triggered.connect(lambda: self._load_pcap())
+
+            load_pcap_as_group = QAction('Load from PCAP as new group')
+            load_pcap_as_group.triggered.connect(self._load_pcap_as_group)
 
             create_group = QAction('Create Group')
             create_group.triggered.connect(lambda: self._create_empty_group())
 
             menu.addAction(add_new)
             menu.addAction(load_pcap)
+            menu.addAction(load_pcap_as_group)
             menu.addAction(create_group)
 
         else:
@@ -209,7 +243,7 @@ class FrameListPanel(QTreeWidget):
 
                 # load pcap to group
                 load_here = QAction('Load PCAP to group')
-                load_here.triggered.connect(lambda: self._get_pcap_file(current_id))
+                load_here.triggered.connect(lambda: self._load_pcap(current_id))
                 menu.addAction(load_here)
 
                 menu.addSeparator()
@@ -259,6 +293,10 @@ class FrameListPanel(QTreeWidget):
         menu.exec(self.mapToGlobal(position))
 
     def _save_group(self, group_item):
+        """
+        Saves whole group as PCAP
+        :param group_item: group item (widget)
+        """
         path = save_file(self, "Packet Capture (*.pcap)")
         if path:
             ids = []
@@ -267,6 +305,10 @@ class FrameListPanel(QTreeWidget):
             self.framesSaved.emit(path, ids)
 
     def _save_selection(self, selected_items):
+        """
+        Saves selection as PCAP
+        :param selected_items: selected items
+        """
         path = save_file(self, "Packet Capture (*.pcap)")
         if path:
             ids = []
@@ -277,6 +319,7 @@ class FrameListPanel(QTreeWidget):
     def _send_mixed_selection(self, selected_items):
         """
         Sends selected items. If an item is a group, sends its children.
+        :param selected_items: selected items
         """
         ids = []
         for item in selected_items:
@@ -305,7 +348,8 @@ class FrameListPanel(QTreeWidget):
 
     def _create_group_from_selection(self, selected_items):
         """
-        Creates group from selection. Checks to ensure no nested groups.
+        Creates group from selected items.
+        :param selected_items: selected items to grop
         """
         # Double check to prevent nested groups
         for item in selected_items:
@@ -331,7 +375,9 @@ class FrameListPanel(QTreeWidget):
 
     def _ungroup(self, group_item):
         """
-        Ungroup selection
+        Ungroups items, first saves its children then readds them to root.
+        :param group_item: group item (widget)
+        :return:
         """
         children = [group_item.child(i) for i in range(group_item.childCount())]
 
@@ -348,6 +394,10 @@ class FrameListPanel(QTreeWidget):
         self._update_decoration_state()
 
     def _delete_group(self, group_item):
+        """
+        Deletes group, emits signal for frame deletion (group children)
+        :param group_item: group item (widget)
+        """
         ids_to_delete = []
         for i in range(group_item.childCount()):
             child = group_item.child(i)
@@ -419,11 +469,33 @@ class FrameListPanel(QTreeWidget):
         pkt_id = item.data(0, ROLE_ID)
         self.frameSelected.emit(pkt_id)
 
-    def _get_pcap_file(self, parent_id=None):
+    def _load_pcap(self, parent_id=None):
         """
-       Gets pcap file and emits signal with its path and parent group id.
-       """
+        Gets pcap file and emits signal to create new frames from this file
+        :param parent_id: parent is group id if pcap is loaded into already existing group
+        """
         file_filter = "Packet Capture (*.pcap)"
         file_path = get_file(self, file_filter)
         if file_path:
             self.addNewFrame.emit(file_path, parent_id if parent_id else '')
+
+
+    def _load_pcap_as_group(self):
+        """
+        Loads frames from pcap file as a new group
+        """
+        group_item = self._create_group()
+        if not group_item:
+            return
+
+        group_id = group_item.data(0, ROLE_ID)
+        file_filter = "Packet Capture (*.pcap)"
+        file_path = get_file(self, file_filter)
+        if file_path:
+            self.addNewFrame.emit(file_path, group_id)
+        else:
+            if group_id in self.group_map:
+                del self.group_map[group_id]
+
+            idx = self.indexOfTopLevelItem(group_item)
+            self.takeTopLevelItem(idx)

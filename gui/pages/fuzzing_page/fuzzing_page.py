@@ -92,6 +92,14 @@ class FuzzingPage(QWidget):
         self.current_layer = None
         self.current_field = None
 
+    def reset_fuzzer(self):
+        self.frame_label.setText("Fuzzing Session: { No Frame Selected }")
+        self.target_panel.reset()
+        self.strategy_panel.setEnabled(True)
+        self.btns_panel.set_generate_enabled(True)
+        self.current_layer = None
+        self.current_field = None
+
     def _on_target_selected(self, layer, field):
         #unlock settings
 
