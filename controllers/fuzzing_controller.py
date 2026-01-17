@@ -1,10 +1,15 @@
 from PySide6.QtCore import QObject, Signal
 import logging
 
+from PySide6.QtWidgets import QInputDialog
+
+from core.fuzzing.fuzzing_engine import FuzzingEngine
+
 log = logging.getLogger(__name__)
 
 class FuzzingController(QObject):
 
+    fuzzingFinished = Signal(list, str)
     fuzzingExit = Signal()
 
     def __init__(self, fuzzing_page, frame_manager):
@@ -12,6 +17,9 @@ class FuzzingController(QObject):
 
         self._fuzzing_page = fuzzing_page
         self._frame_manager = frame_manager
+
+        self._engine = FuzzingEngine(frame_manager)
+        self._current_frame_id = None
         self._connect_signals()
 
     def _connect_signals(self):
@@ -30,7 +38,8 @@ class FuzzingController(QObject):
             log.warning(f"Can not fuzz frame #{frame_id} because it has no layers")
             return
 
-        info_text = f"Frame #{frame.id} ({frame.get_info()})"
+        info_text = f"Frame #{frame.id}"
+        self._current_frame_id = frame_id
         self._fuzzing_page.set_frame(info_text, scapy_pkt)
 
     def _on_back_clicked(self):
@@ -38,7 +47,21 @@ class FuzzingController(QObject):
         self.fuzzingExit.emit()
 
     def _on_fuzz_generate(self):
+        if self._current_frame_id is None:
+            return
 
         config = self._fuzzing_page.get_config()
-        log.debug(config)
-        # call fuzzing here
+
+        default_name = f"Fuzz_{config['target_field']}_{config['strategy'][:3]}"
+        group_name, ok = QInputDialog.getText(
+            self._fuzzing_page, "Group Name", "Create group for results:", text=default_name
+        )
+        if not ok:
+            return
+
+        new_ids = self._engine.execute_fuzzing(self._current_frame_id, config)
+
+        if new_ids:
+            self.fuzzingFinished.emit(new_ids, group_name)
+        else:
+            log.warning("Fuzzing engine returned 0 frames.")

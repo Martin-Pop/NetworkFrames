@@ -1,5 +1,6 @@
 from PySide6.QtCore import QObject, Signal
 from core.input_output.pcap import write_pcap_file, read_pcap_generator
+from gui.pages.frame_page.frame_list_panel import ROLE_ID
 import logging
 log = logging.getLogger(__name__)
 
@@ -41,19 +42,20 @@ class FramePageController(QObject):
 
             if new_frames:
                 self._frame_page.add_frames(new_frames, group_id)
-                log.info(f"Loaded {len(new_frames)} frames from {file_path}")
+                log.debug(f"Loaded {len(new_frames)} frames from {file_path}")
         else:
             new_frame = self._frame_manager.add(None)
             self._frame_page.add_frame(new_frame, group_id)
 
-    def add_fuzzed_frames(self, frame_ids, group_id):
-        """
-        Called by MainController (or Fuzzing Logic) when new packets are generated.
-        :param frame_ids: list of int (IDs of newly created frames in DB)
-        :param group_id: UUID of the group where they should be displayed
-        """
-        frames_to_add = []
+    def add_fuzzed_batch(self, frame_ids, group_name):
 
+        if not frame_ids:
+            return
+
+        group_item = self._frame_page.create_named_group(group_name)
+        group_id = group_item.data(0, ROLE_ID)
+
+        frames_to_add = []
         for fid in frame_ids:
             frame = self._frame_manager.get_frame(fid)
             if frame:
@@ -61,4 +63,4 @@ class FramePageController(QObject):
 
         if frames_to_add:
             self._frame_page.add_frames(frames_to_add, group_id)
-            log.info(f"Added {len(frames_to_add)} fuzzed frames to group {group_id}")
+            log.info(f"Added {len(frames_to_add)} fuzzed frames to group {group_name}")

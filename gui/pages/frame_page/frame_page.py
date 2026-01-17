@@ -41,3 +41,6 @@ class FramePage(QFrame):
 
     def add_frames(self, frames, group_id):
         self._frame_list_panel.add_frames(frames, group_id)
+
+    def create_named_group(self, group_name):
+        return  self._frame_list_panel.create_named_group(group_name)

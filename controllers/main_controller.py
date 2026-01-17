@@ -31,6 +31,7 @@ class MainController(QObject):
         #fuzzing
         self._fuzzing_controller = FuzzingController(self._window.fuzzing_page, self._frame_manager)
         self._fuzzing_controller.fuzzingExit.connect(self._switch_to_frames_page)
+        self._fuzzing_controller.fuzzingFinished.connect(self._on_fuzzing_finished)
 
         # frames
         self._frame_page_controller = FramePageController(self._window.frame_page, self._frame_manager)
@@ -73,3 +74,7 @@ class MainController(QObject):
     def _on_fuzzing_requested(self, frame_id):
         self._fuzzing_controller.load_fuzzer(frame_id)
         self._window.switch_to('fuzzing')
+
+    def _on_fuzzing_finished(self, ids, group_name):
+        self._frame_page_controller.add_fuzzed_batch(ids, group_name)
+        self._switch_to_frames_page()

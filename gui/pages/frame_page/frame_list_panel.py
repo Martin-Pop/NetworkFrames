@@ -1,3 +1,5 @@
+import logging
+
 from PySide6.QtWidgets import (
     QTreeWidget, QTreeWidgetItem, QAbstractItemView,
     QHeaderView, QMenu, QFrame, QInputDialog
@@ -118,15 +120,14 @@ class FrameListPanel(QTreeWidget):
         self.setUpdatesEnabled(True)
 
     def _create_group(self):
-        """
-        Creates new group item, asks for name
-        :return: new group item
-        """
+        logging.info("Creating group")
 
         name, ok = QInputDialog.getText(self, "Create Group", "Group Name:")
         if not ok or not name:
             return None
+        return self.create_named_group(name)
 
+    def create_named_group(self, name):
         group_item = QTreeWidgetItem(self)
         group_item.setText(0, name.strip())
 
@@ -141,6 +142,8 @@ class FrameListPanel(QTreeWidget):
         group_item.setData(0, ROLE_ID, virtual_id)
 
         self.group_map[virtual_id] = group_item
+
+        self.addTopLevelItem(group_item)
 
         return group_item
 
