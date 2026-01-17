@@ -13,7 +13,7 @@ LOG_FORMAT = (
 )
 
 AUTO_CLOSE_TIMER = 2500 #ms
-
+_qt_log_handler_instance = None
 
 class QtLogHandler(logging.Handler, QObject):
     """
@@ -29,6 +29,24 @@ class QtLogHandler(logging.Handler, QObject):
         QObject.__init__(self)
         self.show_error_signal.connect(self._show_error_box)
         self.show_notification_signal.connect(self._show_notification_box)
+
+        self._main_window_ref = None
+
+    def set_main_window(self, window):
+        """
+        Registers the main window instance to ensure popups always have a parent.
+        :param window: window to register
+        """
+        self._main_window_ref = window
+
+    def _get_parent(self):
+        """
+        Returns the best available parent widget.
+        Priority: 1. Registered Main Window, 2. Active Window, 3. None
+        """
+        if self._main_window_ref:
+            return self._main_window_ref
+        return QApplication.activeWindow()
 
     def emit(self, record):
         """
@@ -65,11 +83,11 @@ class QtLogHandler(logging.Handler, QObject):
         :param detail: message details
         """
 
-        active_window = QApplication.activeWindow()
-        if not active_window:
-             return
+        parent = self._get_parent()
+        if not parent:
+            return
 
-        msg_box = QMessageBox(active_window)
+        msg_box = QMessageBox(parent)
         msg_box.setIcon(QMessageBox.Icon.Critical)
         msg_box.setWindowTitle(title)
         msg_box.setText(f"<b>{body}</b>")
@@ -83,25 +101,28 @@ class QtLogHandler(logging.Handler, QObject):
     def _show_notification_box(self, level, title, body):
         """
         Shows notification. auto close for INFO.
+        :param level: log leve
+        :param title: notification title
+        :param body: notification body (text)
+        :return:
         """
-        active_window = QApplication.activeWindow()
-
-        if not active_window:
-             return
+        parent = self._get_parent()
+        if not parent:
+           return
 
         style = QApplication.style()
 
-        msg_box = QMessageBox(active_window)
+        msg_box = QMessageBox(parent)
         msg_box.setWindowTitle(title)
         msg_box.setText(body)
 
         if level == logging.WARNING:
-            icon = style.standardIcon(QStyle.StandardPixmap.SP_MessageBoxWarning)
-            msg_box.setIconPixmap(icon.pixmap(32, 32))
+           icon = style.standardIcon(QStyle.StandardPixmap.SP_MessageBoxWarning)
+           msg_box.setIconPixmap(icon.pixmap(32, 32))
         else:
-            icon = style.standardIcon(QStyle.StandardPixmap.SP_MessageBoxInformation)
-            msg_box.setIconPixmap(icon.pixmap(32, 32))
-            QTimer.singleShot(AUTO_CLOSE_TIMER, msg_box.accept)
+           icon = style.standardIcon(QStyle.StandardPixmap.SP_MessageBoxInformation)
+           msg_box.setIconPixmap(icon.pixmap(32, 32))
+           QTimer.singleShot(AUTO_CLOSE_TIMER, msg_box.accept)
 
         msg_box.exec()
 
@@ -127,6 +148,8 @@ def _global_exception_hook(exc_type, exc_value, exc_traceback):
 
 
 def setup_logger(level=logging.DEBUG, log_file="app.log"):
+    global _qt_log_handler_instance
+
     root = logging.getLogger()
     root.setLevel(level)
 
@@ -153,6 +176,11 @@ def setup_logger(level=logging.DEBUG, log_file="app.log"):
 
     root.addHandler(qt_handler)
 
+    _qt_log_handler_instance = qt_handler
     sys.excepthook = _global_exception_hook
 
     logging.info(f"Logger initialized. Warnings+ will be saved to {log_file}")
+
+def register_main_window_logger(window):
+    if _qt_log_handler_instance:
+        _qt_log_handler_instance.set_main_window(window)
