@@ -98,6 +98,7 @@ class ProtocolEditorDialog(QDialog):
             node = stack[i]
             if node.current is None and node.options is None:
                 widget = QPushButton('Add')
+                widget.setObjectName('add_button')
                 widget.clicked.connect(lambda checked, index=i: self.stackUpdated.emit((index, None)))
             else:
                 widget = QComboBox()

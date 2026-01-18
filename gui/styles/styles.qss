@@ -98,6 +98,39 @@ QComboBox::down-arrow {
     height: 10px;
 }
 
+QComboBox QAbstractItemView {
+    background-color: @BG_INPUT;
+
+    border: 2px solid @PRIMARY;
+    border-radius: 4px;
+    padding: 4px;
+    outline: 0px;
+}
+
+QComboBox QAbstractItemView::item {
+    min-height: 25px;
+    border-radius: 2px;
+    padding-left: 5px;
+}
+
+QComboBox QAbstractItemView::item:hover,
+QComboBox QAbstractItemView::item:selected {
+    background-color: @PRIMARY;
+    color: @PRIMARY_TEXT;
+}
+
+QComboBox QAbstractItemView QScrollBar:vertical {
+    background: @BG;
+    width: 8px;
+    border-radius: 4px;
+}
+
+QComboBox QAbstractItemView QScrollBar::handle:vertical {
+    background: @SECONDARY;
+    border-radius: 4px;
+    min-height: 20px;
+}
+
 /* =================================================================================
    SPINBOX ARROWS & BUTTONS
    ================================================================================= */
@@ -106,7 +139,7 @@ QSpinBox::down-button, QDoubleSpinBox::down-button {
     subcontrol-origin: border;
     width: 20px;
     background-color: @BG;
-    border-left: 1px solid @SECONDARY;
+    border: 1px solid @SECONDARY;
 }
 
 /* Up Button Position */
@@ -203,6 +236,12 @@ QToolButton:hover {
     background-color: @SECONDARY;
     color: @PRIMARY_TEXT;
     border: 1px solid @BORDER;
+}
+
+#add_button {
+    padding: 4px;
+    border: 1px solid @SECONDARY;
+    border-radius: 4px;
 }
 
 /* =================================================================================
@@ -426,4 +465,8 @@ ScapyFieldRow QLabel {
     color: @PRIMARY;
     font-weight: bold;
     font-size: 13px;
+}
+
+ProtocolEditorDialog {
+    background-color: @BG;
 }

@@ -120,8 +120,6 @@ class FrameListPanel(QTreeWidget):
         self.setUpdatesEnabled(True)
 
     def _create_group(self):
-        logging.info("Creating group")
-
         name, ok = QInputDialog.getText(self, "Create Group", "Group Name:")
         if not ok or not name:
             return None
@@ -165,8 +163,8 @@ class FrameListPanel(QTreeWidget):
             item.setText(1, info["src_ip"])
             item.setText(2, info["dst_ip"])
             item.setText(3, info["protocol"])
-            # item.setText(4, str(info["len"]))
-            # item.setText(5, info["info"])
+            item.setText(4, str(info["len"]))
+            item.setText(5, info["info"])
             item.setData(0, ROLE_ID, frame.id)
             item.setData(0, ROLE_IS_GROUP, False)
 

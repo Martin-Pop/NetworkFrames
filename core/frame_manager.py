@@ -35,16 +35,24 @@ class NetworkFrame(QObject):
             elif IPv6 in self._scapy_object:
                 src, dst = str(self._scapy_object[IPv6].src), str(self._scapy_object[IPv6].dst)
             else:
-                src, dst = "",""
+                src, dst = "", ""
+
             protocol = self._scapy_object.lastlayer().name
+            info = self._scapy_object.summary()
+            length = len(self._scapy_object)
+
         else:
             src, dst, protocol = "", "", ""
+            info = "Empty Frame"
+            length = 0
 
         self._info = {
             "id": str(self._id),
             "src_ip": src,
             "dst_ip": dst,
-            "protocol": protocol
+            "protocol": protocol,
+            "len": length,
+            "info": info
         }
 
         self.infoUpdated.emit()
