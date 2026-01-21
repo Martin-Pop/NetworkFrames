@@ -16,30 +16,32 @@ class SenderButtonsPanel(QFrame):
         self.setObjectName('sender_buttons')
 
         layout = QVBoxLayout(self)
-        layout.setSpacing(5)
+        layout.setContentsMargins(10,10,10,10)
+        layout.setSpacing(8)
 
         # start
         self.btn_start = QPushButton("Start")
-        self.btn_start.setProperty('styleClass', 'send_button')
+        self.btn_start.setObjectName('sender_buttons')
         self.btn_start.clicked.connect(self.startClicked.emit)
         layout.addWidget(self.btn_start)
 
         # pause
         self.btn_pause = QPushButton("Pause")
-        self.btn_pause.setProperty('styleClass', 'send_button')
+        self.btn_pause.setObjectName('sender_buttons')
         self.btn_pause.setCheckable(True)  # Toggle button
         self.btn_pause.clicked.connect(self.pauseClicked.emit)
         layout.addWidget(self.btn_pause)
 
         #stop
         self.btn_stop = QPushButton("Stop")
-        self.btn_stop.setProperty('styleClass', 'send_button')
+        self.btn_stop.setObjectName('sender_buttons')
         self.btn_stop.clicked.connect(self.stopClicked.emit)
         layout.addWidget(self.btn_stop)
 
         # Back
         self.btn_back = QPushButton("Back")
-        self.btn_back.setProperty('styleClass', 'send_button')
+        self.btn_back.setObjectName('sender_buttons')
+        self.btn_back.setMinimumWidth(120)
         self.btn_back.clicked.connect(self.backClicked.emit)
         layout.addWidget(self.btn_back)
 

@@ -539,6 +539,7 @@ class FieldEditorWidget(QWidget):
             row_layout.setContentsMargins(0, 2, 0, 2)
 
             lbl = QLabel(f.name)
+            lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
             lbl.setFixedWidth(100)
 
             field_widget = ScapyFieldRow(cls_name,f, val)

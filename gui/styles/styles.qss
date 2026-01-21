@@ -39,8 +39,8 @@ QLabel#frame_id_label {
     background-color: @BG_SECONDARY;
     border-radius: 4px;
     color: @TEXT;
-    padding: 5px;
-    border: 1px solid @BORDER; /* Added consistent border */
+    padding: 2px;
+    border: 2px solid @BORDER;
 }
 
 /* Protocol Stack Frame */
@@ -48,6 +48,21 @@ QFrame#protocol_stack_widget {
     border: 2px solid @SECONDARY;
     border-radius: 4px;
     background-color: @BG;
+}
+
+QLabel#header_label {
+    background-color: @SECONDARY;
+    color: @PRIMARY_TEXT;
+
+    font-weight: bold;
+    font-size: 14px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 10px;
+    padding-right: 10px;
+
+    border-radius: 2px;
+    margin-bottom: 5px;
 }
 
 /* =================================================================================
@@ -187,18 +202,18 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
 
 /* 2. Common Action Buttons (Save, Load, etc.) */
 QPushButton[styleClass~='common_button'],
-QPushButton[styleClass~='send_button'] {
+QPushButton#sender_buttons {
     background-color: @PRIMARY;
     color: @PRIMARY_TEXT;
-    border-radius: 4px;
-    padding: 6px 15px;
+    border-radius: 3px;
+    padding: 6px 12px;
+    font-size: 16px;
     font-weight: bold;
     border: none;
-    min-height: 25px;
 }
 
 QPushButton[styleClass~='common_button']:hover,
-QPushButton[styleClass~='send_button']:hover {
+QPushButton#sender_buttons:hover {
     background-color: @PRIMARY_HOVER;
 }
 

@@ -44,7 +44,7 @@ class EditorController(QObject):
         data = self._editor_page.get_editor_data()
         frame = self._frame_manager.get_frame(self._current_id)
         frame.reconstruct_scapy(data)
-        log.debug("Saving editor frame")
+        log.info("Frame saved")
         # raw(frame.scapy)
         # print(frame.scapy.show())
 

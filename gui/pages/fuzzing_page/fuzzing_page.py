@@ -51,6 +51,7 @@ class FuzzingPage(QWidget):
         right_layout = QVBoxLayout(right_w)
         right_layout.setContentsMargins(10, 0, 0, 0)
         right_layout.addWidget(self.strategy_panel)
+        right_layout.addStretch()
 
         splitter.addWidget(left_w)
         splitter.addWidget(right_w)
@@ -59,9 +60,9 @@ class FuzzingPage(QWidget):
         splitter.setStretchFactor(0, 2)
         splitter.setStretchFactor(1, 1)
 
-        self.main_layout.addWidget(splitter)
+        self.main_layout.addWidget(splitter,1)
 
-        self.main_layout.addStretch()
+        # self.main_layout.addStretch()
 
         # buttons
         self.btns_panel = FuzzingButtonsPanel()

@@ -97,6 +97,7 @@ class EditorPage(QStackedWidget):
     def clear_page(self):
         self.protocol_stack_widget.clear()
         self.editor_widget.clear()
+        self.info_widget.set_text("")
 
     def load_page(self, _id , layers, cls_names):
         self.frame_id_label.setText('Frame ID: ' + str(_id))

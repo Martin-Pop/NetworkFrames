@@ -19,9 +19,11 @@ class SenderConfPanel(QFrame):
         self.setObjectName('sender_conf')
 
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(10,10,10,10)
 
         # header
         header = QLabel("Configuration")
+        header.setObjectName('header_label')
         layout.addWidget(header)
 
         # form
@@ -102,9 +104,11 @@ class SenderInfoPanel(QFrame):
         self.setContentsMargins(5,0,0,0)
 
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(10,10,10,10)
 
         # header
         header = QLabel("Information")
+        header.setObjectName('header_label')
         layout.addWidget(header)
 
         # info

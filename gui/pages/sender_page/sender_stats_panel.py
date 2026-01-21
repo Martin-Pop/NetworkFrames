@@ -11,9 +11,10 @@ class SenderStatsPanel(QFrame):
         self.setObjectName('sender_stats')
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 10, 0)
+        layout.setContentsMargins(10,10,10,10)
 
         header = QLabel("Statistics")
+        header.setObjectName('header_label')
         layout.addWidget(header)
 
         # counter
