@@ -1,10 +1,14 @@
 import scapy.all as scapy_all
-from scapy.layers.inet import IP
+from scapy.layers.inet import IP, DestIPField
 from scapy.layers.inet6 import IPv6
 from scapy.fields import RawVal
 from PySide6.QtCore import QObject, Signal
 
 import logging
+
+from scapy.layers.l2 import Ether, SourceMACField, DestMACField
+from scapy.fields import *
+
 log = logging.getLogger(__name__)
 
 class NetworkFrame(QObject):
@@ -29,22 +33,33 @@ class NetworkFrame(QObject):
 
     def _update_info(self):
 
+        src, dst, protocol = "", "", ""
+        info = "empty frame"
+        length = 0
+
         if self._scapy_object:
-            if IP in self._scapy_object:
-                src, dst = str(self._scapy_object[IP].src), str(self._scapy_object[IP].dst)
-            elif IPv6 in self._scapy_object:
-                src, dst = str(self._scapy_object[IPv6].src), str(self._scapy_object[IPv6].dst)
-            else:
-                src, dst = "", ""
+            try:
+                # len forces scapy to build -> errors on malformed packet
+                length = len(self._scapy_object)
 
-            protocol = self._scapy_object.lastlayer().name
-            info = self._scapy_object.summary()
-            length = len(self._scapy_object)
+                if IP in self._scapy_object:
+                    src, dst = str(self._scapy_object[IP].src), str(self._scapy_object[IP].dst)
+                elif IPv6 in self._scapy_object:
+                    src, dst = str(self._scapy_object[IPv6].src), str(self._scapy_object[IPv6].dst)
+                elif Ether in self._scapy_object:
+                    src, dst = str(self._scapy_object[Ether].src), str(self._scapy_object[Ether].dst)
 
-        else:
-            src, dst, protocol = "", "", ""
-            info = "Empty Frame"
-            length = 0
+                protocol = self._scapy_object.lastlayer().name
+
+                try:
+                    info = self._scapy_object.summary()
+                except Exception:
+                    info = "Summary unavailable"
+
+            except Exception as e:
+                log.warning(f"Frame {self._id} has invalid data: {e}")
+                protocol = "MALFORMED"
+                info = f"Invalid Data: {str(e)}"
 
         self._info = {
             "id": str(self._id),
@@ -108,7 +123,6 @@ class NetworkFrame(QObject):
         return layers
 
     def reconstruct_scapy(self, editor_data):
-        log.debug("EDITOR DATA: " + str(editor_data))
         packet = None
 
         for layer_info in editor_data:
@@ -117,29 +131,48 @@ class NetworkFrame(QObject):
 
             layer_cls = getattr(scapy_all, class_name, None)
             if not layer_cls:
-                log.warning(f"Warning unknown class:{class_name}")
                 continue
 
             final_fields = {}
+            layer_field_map = {f.name: f for f in layer_cls.fields_desc}
 
             for key, val in raw_fields.items():
 
-                #remove auto calculation
-                if class_name == "IP" and key in ["src", "dst"] and not val:
-                    val = "0.0.0.0"
+                if val is None or val == "":
+                    continue
+
+                field_desc = layer_field_map.get(key)
+
+                if field_desc and isinstance(val, str):
+                    string_types = (
+                        StrField,
+                        IPField, SourceIPField, DestIPField,
+                        IP6Field, SourceIP6Field, DestIP6Field,
+                        MACField, SourceMACField, DestMACField
+                    )
+
+                    if not isinstance(field_desc, string_types):
+                        try:
+                            val = int(val, 0)
+                        except ValueError:
+                            pass
+
+                if field_desc and isinstance(val, bytes):
+                    if isinstance(field_desc,
+                                  (IPField, SourceIPField, DestIPField, IP6Field, SourceIP6Field, DestIP6Field,
+                                   StrField)):
+                        try:
+                            val = val.decode('utf-8')
+                        except:
+                            pass
 
                 try:
-                    #try create layer with only one field, scapy does validation,
-                    # if exception occurs use RawVal
+                    test_layer = layer_cls(**{key: val})
+                    bytes(test_layer)
 
-                    layer_cls(**{key: val})
-
-                    # values was valid
                     final_fields[key] = val
+                except Exception as e:
 
-                except Exception:
-                    # use RawVal
-                    log.error(f"Field '{key}' validation failed for value '{val}'. Forcing RawVal.")
                     if isinstance(val, str):
                         raw_data = val.encode('utf-8')
                     elif isinstance(val, bytes):
@@ -150,17 +183,25 @@ class NetworkFrame(QObject):
                     final_fields[key] = RawVal(raw_data)
             try:
                 new_layer = layer_cls(**final_fields)
-
                 if packet is None:
                     packet = new_layer
                 else:
                     packet = packet / new_layer
-
             except Exception as e:
-                log.critical(f"CRITICAL: Failed to create layer {class_name} even with RawVal: {e}")
+                log.critical(f"Failed to build layer {class_name}: {e}")
 
         self._scapy_object = packet
         self._update_info()
+
+    def _get_zero_value(self, field_desc):
+        if isinstance(field_desc, (IPField, SourceIPField, DestIPField)):
+            return "0.0.0.0"
+        elif isinstance(field_desc, (MACField, SourceMACField, DestMACField)):
+            return "00:00:00:00:00:00"
+        elif isinstance(field_desc, (ByteField, ShortField, IntField, BitField)):
+            return 0
+        else:
+            return 0
 
 class FrameManager:
 

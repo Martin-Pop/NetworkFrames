@@ -22,7 +22,7 @@ class ScapyFieldRow(QWidget):
     4. Size Label (Static info)
     """
 
-    infoRequested = Signal(str, str, str) #layer, field, text
+    infoRequested = Signal(str, str, str)  # layer, field, text
 
     def __init__(self, cls_name, field_desc, current_val, parent=None):
         super().__init__(parent)
@@ -107,7 +107,7 @@ class ScapyFieldRow(QWidget):
         if hasattr(f, "default"):
             info_text += f"<b>Default:</b> {f.default}<br>"
 
-        self.infoRequested.emit(self.cls_name, f.name ,info_text)
+        self.infoRequested.emit(self.cls_name, f.name, info_text)
 
     def get_value(self):
         """Returns the value from the main editor."""
@@ -126,6 +126,13 @@ class ScapyFieldRow(QWidget):
         f = self._remove_emph(self.field_desc)
         val = self.current_val
 
+        if isinstance(val, RawVal):
+            val = val.val
+
+        if isinstance(val, list):
+            self._setup_readonly(f, val)
+            return
+
         # enum
         if isinstance(f, (EnumField, MultiEnumField)):
             self._setup_enum(f, val)
@@ -138,13 +145,13 @@ class ScapyFieldRow(QWidget):
         elif isinstance(f, (IntField, ShortField, ByteField, LongField, BitField)):
             self._setup_number(f, val)
 
-        # string / ip / mac
-        elif isinstance(f, (IPField, MACField, StrField)):
+        # string / ip / mac / ipv6
+        elif isinstance(f, (IPField, MACField, StrField, IP6Field, SourceIP6Field, DestIP6Field)):
             self._setup_string(f, val)
 
-        # fallback raed-only
+        # fallback
         else:
-            self._setup_readonly(f, val)
+            self._setup_string(f, val)
 
     # setup methods
     def _setup_number(self, f, val):
@@ -156,7 +163,7 @@ class ScapyFieldRow(QWidget):
 
         self.editor_widget.valueChanged.connect(self._update_from_int)
 
-        self.mid_layout.insertWidget(0, self.editor_widget, 1)
+        self.mid_layout.insertWidget(0, self.editor_widget)
         self._update_from_int(self.editor_widget.value())
 
     def _setup_enum(self, f, val):
@@ -246,9 +253,14 @@ class ScapyFieldRow(QWidget):
         txt = ""
         if val is not None:
             if isinstance(val, bytes):
-                txt = val.decode('utf-8', errors='ignore')
+                try:
+                    txt = val.decode('utf-8')
+                except UnicodeDecodeError:
+                    # txt = val.hex()  # Volitelné, nebo nechat prázdné/garbage
+                    txt = val.decode('utf-8', errors='replace')
             else:
                 txt = str(val)
+
         self.editor_widget.setText(txt)
 
         self.editor_widget.textChanged.connect(self._update_from_string)
@@ -352,7 +364,6 @@ class ScapyFieldRow(QWidget):
             else:
                 b = bytes(text)
 
-
             h = b.hex().upper()
             formatted_hex = " ".join([h[i:i + 2] for i in range(0, len(h), 2)])
             self.hex_display.setText(formatted_hex)
@@ -386,7 +397,6 @@ class ScapyFieldRow(QWidget):
             if isinstance(size, float) and not size.is_integer():
                 return f"{int(size * 8)} bits"
 
-            # Je to celé číslo (např. 1, 2, 4) -> jsou to bajty
             return f"{int(size)} bytes"
 
         if isinstance(f, (ByteField, IPField)): return "1 byte"
@@ -542,7 +552,7 @@ class FieldEditorWidget(QWidget):
             lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
             lbl.setFixedWidth(100)
 
-            field_widget = ScapyFieldRow(cls_name,f, val)
+            field_widget = ScapyFieldRow(cls_name, f, val)
 
             field_widget.infoRequested.connect(self.infoRequested)
 
