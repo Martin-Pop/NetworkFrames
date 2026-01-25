@@ -7,6 +7,7 @@ from .pages.editor_page.editor_page import EditorPage
 from .pages.frame_page.frame_page import FramePage
 from .pages.fuzzing_page.fuzzing_page import FuzzingPage
 from .pages.sender_page.sender_page import SenderPage
+from .pages.receiver_page.receiver_page import ReceiverPage
 
 
 def _create_page(title):
@@ -43,24 +44,24 @@ class MainWindow(QMainWindow):
         self.stacked_widget = QStackedWidget()
         self.page_map = {}
 
-        #frames
+        # frames
         self.frame_page = FramePage()
         self._init_page(self.frame_page, 'frames')
 
-        #editor
+        # editor
         self.editor_page = EditorPage()
         self._init_page(self.editor_page, 'editor')
 
-        #fuzzer
+        # fuzzer
         self.fuzzing_page = FuzzingPage()
         self._init_page(self.fuzzing_page, 'fuzzing')
 
-        #sender
+        # sender
         self.sender_page = SenderPage()
         self._init_page(self.sender_page, 'sender')
 
-        #receiver
-        self.receiver_page = _create_page("--receiver--")
+        # receiver
+        self.receiver_page = ReceiverPage()
         self._init_page(self.receiver_page, 'receiver')
 
         # settings
@@ -83,7 +84,6 @@ class MainWindow(QMainWindow):
         btn.clicked.connect(lambda: self.switch_to(name))
 
         self.control_layout.addWidget(btn)
-
 
     def switch_to(self, name: str):
         self.stacked_widget.setCurrentIndex(self.page_map[name])

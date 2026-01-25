@@ -35,7 +35,9 @@ QLabel#frame_id_label {
 #sender_stats,
 #sender_fuzz,
 #sender_buttons,
-#sender_conf {
+#sender_conf,
+#receiver_remote_panel,
+#receiver_local_panel {
     background-color: @BG_SECONDARY;
     border-radius: 4px;
     color: @TEXT;
@@ -185,7 +187,8 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
    BUTTONS
    ================================================================================= */
 /* 1. Navigation Bar Buttons */
-#control_bar QPushButton {
+#control_bar QPushButton,
+#receiver_nav_bar QPushButton {
     background-color: @PRIMARY;
     color: @PRIMARY_TEXT;
     border-radius: 3px;
@@ -196,7 +199,9 @@ QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {
 }
 
 #control_bar QPushButton:hover,
-#control_bar QPushButton[selected="true"] {
+#control_bar QPushButton[selected="true"],
+#receiver_nav_bar QPushButton:hover,
+#receiver_nav_bar QPushButton:checked {
     background-color: @PRIMARY_HOVER;
 }
 

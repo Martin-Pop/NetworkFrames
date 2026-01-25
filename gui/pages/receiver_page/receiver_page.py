@@ -1,0 +1,103 @@
+from PySide6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout,
+    QStackedWidget, QPushButton, QButtonGroup, QFrame
+)
+from PySide6.QtCore import Signal, Slot, Qt
+
+from gui.pages.receiver_page.receiver_config_panel import ReceiverConfigurationPanel
+from gui.pages.receiver_page.receiver_capture_panel import ReceiverCapturePanel
+
+
+class ReceiverPage(QWidget):
+    # Config Panel signals
+    configSaved = Signal(dict)
+    syncRequested = Signal(dict)
+
+    # Capture Panel signals
+    clearRequested = Signal()
+    saveRequested = Signal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._init_ui()
+        self._connect_internal_signals()
+
+    def _init_ui(self):
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(0)
+
+        nav_bar = QFrame()
+        nav_bar.setObjectName("receiver_nav_bar")
+
+        nav_layout = QHBoxLayout(nav_bar)
+        nav_layout.setContentsMargins(5, 5, 5, 5)
+        nav_layout.setSpacing(5)
+
+        self.btn_config = QPushButton("Settings")
+        self.btn_config.setCheckable(True)
+        self.btn_config.setChecked(True)
+        self.btn_config.setMinimumHeight(30)
+
+        self.btn_capture = QPushButton("Captured Packets")
+        self.btn_capture.setCheckable(True)
+        self.btn_capture.setMinimumHeight(30)
+
+        self.nav_group = QButtonGroup(self)
+        self.nav_group.addButton(self.btn_config, 0)
+        self.nav_group.addButton(self.btn_capture, 1)
+        self.nav_group.idClicked.connect(self._on_nav_clicked)
+
+        nav_layout.addWidget(self.btn_config)
+        nav_layout.addWidget(self.btn_capture)
+        nav_layout.addStretch()
+
+        layout.addWidget(nav_bar)
+
+        self.stack = QStackedWidget()
+
+        # config
+        self.config_panel = ReceiverConfigurationPanel()
+        self.stack.addWidget(self.config_panel)
+
+        # capture results
+        self.capture_panel = ReceiverCapturePanel()
+        self.stack.addWidget(self.capture_panel)
+
+        layout.addWidget(self.stack)
+
+    def _connect_internal_signals(self):
+        # Forward signals from panels up to the controller
+        self.config_panel.configSaved.connect(self.configSaved)
+        self.config_panel.syncRequested.connect(self.syncRequested)
+
+        self.capture_panel.clearRequested.connect(self.clearRequested)
+        self.capture_panel.saveRequested.connect(self.saveRequested)
+
+    def _on_nav_clicked(self, id):
+        self.stack.setCurrentIndex(id)
+
+
+    @Slot()
+    def show_config(self):
+        self.btn_config.setChecked(True)
+        self.stack.setCurrentIndex(0)
+
+    @Slot()
+    def show_capture(self):
+        self.btn_capture.setChecked(True)
+        self.stack.setCurrentIndex(1)
+
+    def set_interfaces(self, ifaces):
+        self.config_panel.set_interfaces(ifaces)
+
+    def set_sync_status(self, success, message=""):
+        self.config_panel.set_sync_status(success, message)
+
+    def add_packet_to_table(self, packet_data):
+        self.capture_panel.add_packet(packet_data)
+        # Optional: Auto-switch to capture view when packet arrives?
+        # self.show_capture()
+
+    def clear_table(self):
+        self.capture_panel.clear_table()

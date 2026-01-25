@@ -1,8 +1,9 @@
-from PySide6.QtCore import QObject, Qt, Signal
+from PySide6.QtCore import QObject
 
 from controllers.editor_controller import EditorController
 from controllers.frame_page_controller import FramePageController
 from controllers.fuzzing_controller import FuzzingController
+from controllers.receiver_controller import ReceiverController
 from controllers.sender_controller import SenderController
 from core.frame_manager import FrameManager
 from core.protocol_stack import ProtocolStack
@@ -24,11 +25,11 @@ class MainController(QObject):
         self._frame_manager = FrameManager()
         self._protocol_stack = ProtocolStack(self._builder)
 
-        #editor
-        self._editor_controller = EditorController(self._window.editor_page, self._frame_manager,self._builder, self._protocol_stack)
+        # editor
+        self._editor_controller = EditorController(self._window.editor_page, self._frame_manager, self._builder, self._protocol_stack)
         self._editor_controller.editorClosed.connect(self._switch_to_frames_page)
 
-        #fuzzing
+        # fuzzing
         self._fuzzing_controller = FuzzingController(self._window.fuzzing_page, self._frame_manager)
         self._fuzzing_controller.fuzzingExit.connect(self._switch_to_frames_page)
         self._fuzzing_controller.fuzzingFinished.connect(self._on_fuzzing_finished)
@@ -42,6 +43,10 @@ class MainController(QObject):
         # sender
         self._sender_controller = SenderController(self._window.sender_page, self._frame_manager)
         self._sender_controller.senderClosed.connect(self._on_sender_closed)
+
+        # receiver
+        self._receiver_controller = ReceiverController(self)
+        self._receiver_controller.set_view(self._window.receiver_page)
 
     def _on_editor_open(self, _id):
         """
