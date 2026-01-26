@@ -1,16 +1,17 @@
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QComboBox, QSpinBox, QPushButton,
-    QLineEdit, QMessageBox, QFrame
+    QLineEdit, QMessageBox, QFrame, QSizePolicy
 )
 from PySide6.QtCore import Qt, Signal, QRegularExpression
 from PySide6.QtGui import QRegularExpressionValidator
+import logging
 
+log = logging.getLogger(__name__)
 
 class ReceiverRemotePanel(QFrame):
     """
     Left/Top panel: Remote Device Settings.
-    Styled to match SenderConfPanel.
     """
 
     def __init__(self, parent=None):
@@ -25,7 +26,7 @@ class ReceiverRemotePanel(QFrame):
 
         # Header
         header = QLabel("Remote Device")
-        header.setObjectName('header_label')  # Matches Sender header style
+        header.setObjectName('header_label')
         layout.addWidget(header)
 
         # Form
@@ -49,7 +50,7 @@ class ReceiverRemotePanel(QFrame):
         self.form_layout.addRow("Remote Port:", self.port_spin)
 
         layout.addLayout(self.form_layout)
-        layout.addStretch()  # Push content up
+        layout.addStretch()
 
     def get_data(self):
         return {
@@ -63,6 +64,7 @@ class ReceiverLocalPanel(QFrame):
     Right/Bottom panel: Local Settings.
     Styled to match SenderInfoPanel.
     """
+    interfaceChanged = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -85,6 +87,7 @@ class ReceiverLocalPanel(QFrame):
 
         # Inputs
         self.interface_combo = QComboBox()
+        self.interface_combo.currentIndexChanged.connect(self._on_interface_change)
 
         self.port_spin = QSpinBox()
         self.port_spin.setRange(1024, 65535)
@@ -93,12 +96,50 @@ class ReceiverLocalPanel(QFrame):
         self.form_layout.addRow("Interface:", self.interface_combo)
         self.form_layout.addRow("Listen Port:", self.port_spin)
 
+        line = QFrame()
+        line.setFrameShape(QFrame.Shape.HLine)
+        line.setFrameShadow(QFrame.Shadow.Sunken)
+        self.form_layout.addRow(line)
+
+        self.lbl_ip = QLabel("-")
+        self.lbl_mac = QLabel("-")
+
+        self.form_layout.addRow("IP Addresses:", self.lbl_ip)
+        self.form_layout.addRow("MAC Address:", self.lbl_mac)
+
         layout.addLayout(self.form_layout)
         layout.addStretch()
 
-    def set_interfaces(self, ifaces):
+    def set_interfaces(self, int_list):
+        self.interface_combo.blockSignals(True)
         self.interface_combo.clear()
-        self.interface_combo.addItems(ifaces)
+
+        for name in int_list:
+            self.interface_combo.addItem(name, name)
+
+        self.interface_combo.blockSignals(False)
+
+        # manual update
+        if self.interface_combo.count() > 0:
+            self._on_interface_change()
+
+    def _on_interface_change(self):
+        data = self.interface_combo.currentData()
+        self.interfaceChanged.emit(data)
+
+    def update_interface_info(self, interface_data):
+        if not interface_data:
+            self.lbl_ip.setText("-")
+            self.lbl_mac.setText("-")
+            return
+
+        ips = interface_data.get("ips", None)
+        if ips:
+            self.lbl_ip.setText('\n'.join(ips))
+        else:
+            self.lbl_ip.setText("Unknown")
+
+        self.lbl_mac.setText(interface_data.get("mac", "Unknown"))
 
     def get_data(self):
         return {
@@ -110,14 +151,15 @@ class ReceiverLocalPanel(QFrame):
 class ReceiverConfigurationPanel(QWidget):
     """
     Main container for the configuration view.
-    Combines RemotePanel and LocalPanel side-by-side (or top-bottom).
     """
     configSaved = Signal(dict)
     syncRequested = Signal(dict)
+    interfaceChanged = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._init_ui()
+        self._connect_signals()
 
     def _init_ui(self):
         main_layout = QVBoxLayout(self)
@@ -161,6 +203,9 @@ class ReceiverConfigurationPanel(QWidget):
 
         main_layout.addWidget(footer_widget)
 
+    def _connect_signals(self):
+        self.local_panel.interfaceChanged.connect(self.interfaceChanged)
+
     def _on_save_clicked(self):
         config = self.get_config()
 
@@ -170,10 +215,8 @@ class ReceiverConfigurationPanel(QWidget):
 
         self.configSaved.emit(config)
 
-        # UI Feedback
         self.sync_btn.setEnabled(True)
         self.status_lbl.setText("Status: Configuration Saved")
-        # Trigger style update if needed via property
         self.status_lbl.setProperty("status", "saved")
         self.status_lbl.style().unpolish(self.status_lbl)
         self.status_lbl.style().polish(self.status_lbl)
@@ -188,7 +231,6 @@ class ReceiverConfigurationPanel(QWidget):
         self.syncRequested.emit(config)
 
     def get_config(self):
-        # Combine data from both panels
         data = {}
         data.update(self.remote_panel.get_data())
         data.update(self.local_panel.get_data())
@@ -196,6 +238,9 @@ class ReceiverConfigurationPanel(QWidget):
 
     def set_interfaces(self, ifaces):
         self.local_panel.set_interfaces(ifaces)
+
+    def update_local_interface_info(self, interface_data):
+        self.local_panel.update_interface_info(interface_data)
 
     def set_sync_status(self, success, message=""):
         if success:

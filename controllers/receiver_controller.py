@@ -1,5 +1,5 @@
 from PySide6.QtCore import QObject, Slot
-from scapy.all import get_if_list
+from core.input_output.interfaces import get_interfaces
 import logging
 
 log = logging.getLogger(__name__)
@@ -9,27 +9,25 @@ class ReceiverController(QObject):
     def __init__(self, main_controller):
         super().__init__()
         self.main_ctrl = main_controller
-        self._view = None
+        self._receiver_page = None
         self._engine = None
 
         self._is_listening = False
 
     def set_view(self, receiver_page):
-        self._view = receiver_page
+        self._receiver_page = receiver_page
         self._connect_signals()
         self._init_data()
 
     def _connect_signals(self):
-        self._view.configSaved.connect(self._on_config_saved)
-        self._view.syncRequested.connect(self._on_sync_requested)
-        self._view.clearRequested.connect(self._on_clear_requested)
-        self._view.saveRequested.connect(self._on_save_pcap_requested)
+        self._receiver_page.configSaved.connect(self._on_config_saved)
+        self._receiver_page.syncRequested.connect(self._on_sync_requested)
+        self._receiver_page.clearRequested.connect(self._on_clear_requested)
+        self._receiver_page.saveRequested.connect(self._on_save_pcap_requested)
 
     def _init_data(self):
-
         try:
-            ifaces = get_if_list()
-            self._view.set_interfaces(ifaces)
+            self._receiver_page.set_interfaces(get_interfaces())
         except Exception as e:
             log.error(f"Failed to load interfaces: {e}")
 
@@ -64,13 +62,13 @@ class ReceiverController(QObject):
         success = random.choice([True, False])
 
         if success:
-            self._view.set_sync_status(True, "Connected")
+            self._receiver_page.set_sync_status(True, "Connected")
         else:
-            self._view.set_sync_status(False, "Connection Refused")
+            self._receiver_page.set_sync_status(False, "Connection Refused")
 
     @Slot()
     def _on_clear_requested(self):
-        self._view.clear_table()
+        self._receiver_page.clear_table()
 
     @Slot()
     def _on_save_pcap_requested(self):
@@ -78,5 +76,5 @@ class ReceiverController(QObject):
 
 
     def handle_incoming_packet(self, packet_dict):
-        self._view.add_packet_to_table(packet_dict)
+        self._receiver_page.add_packet_to_table(packet_dict)
         # self._view.show_capture()

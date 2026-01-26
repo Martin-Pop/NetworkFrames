@@ -19,13 +19,14 @@ class ReceiverPage(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.current_interfaces = []  # Store data for lookup (IPs/MACs)
         self._init_ui()
         self._connect_internal_signals()
 
     def _init_ui(self):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(0)
+        layout.setSpacing(10)
 
         nav_bar = QFrame()
         nav_bar.setObjectName("receiver_nav_bar")
@@ -71,12 +72,13 @@ class ReceiverPage(QWidget):
         self.config_panel.configSaved.connect(self.configSaved)
         self.config_panel.syncRequested.connect(self.syncRequested)
 
+        self.config_panel.interfaceChanged.connect(self._on_interface_changed)
+
         self.capture_panel.clearRequested.connect(self.clearRequested)
         self.capture_panel.saveRequested.connect(self.saveRequested)
 
     def _on_nav_clicked(self, id):
         self.stack.setCurrentIndex(id)
-
 
     @Slot()
     def show_config(self):
@@ -88,16 +90,29 @@ class ReceiverPage(QWidget):
         self.btn_capture.setChecked(True)
         self.stack.setCurrentIndex(1)
 
-    def set_interfaces(self, ifaces):
-        self.config_panel.set_interfaces(ifaces)
+    def set_interfaces(self, int_list):
+        """
+        Saves interfaces to use and updates the combo box in config panel.
+        Matches SenderPage logic.
+        :param int_list: list of interfaces [{'name': '...', 'ips': [...], 'mac': '...'}]
+        """
+        self.current_interfaces = int_list
+        names = [interface.get('name') for interface in int_list]
+        self.config_panel.set_interfaces(names)
+
+    def _on_interface_changed(self, iface_name):
+        """
+        Finds the interface data and updates the Info labels in the panel.
+        :param iface_name: name of changed interface
+        """
+        selected_data = next((i for i in self.current_interfaces if i["name"] == iface_name), None)
+        self.config_panel.update_local_interface_info(selected_data)
 
     def set_sync_status(self, success, message=""):
         self.config_panel.set_sync_status(success, message)
 
     def add_packet_to_table(self, packet_data):
         self.capture_panel.add_packet(packet_data)
-        # Optional: Auto-switch to capture view when packet arrives?
-        # self.show_capture()
 
     def clear_table(self):
         self.capture_panel.clear_table()
