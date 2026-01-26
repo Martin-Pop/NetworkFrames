@@ -8,6 +8,7 @@ class FramePageController(QObject):
 
     onFrameSelected = Signal(int)
     sendRequest = Signal(list)
+    framesDeleted = Signal(list)
     openFuzzingRequest = Signal(int)
 
     def __init__(self, frame_page, frame_manager):
@@ -18,6 +19,7 @@ class FramePageController(QObject):
 
         self._frame_page.addNewFrame.connect(self._on_new_frame_added_request)
         self._frame_page.frameSelected.connect(self.onFrameSelected)
+        self._frame_page.framesDeleted.connect(self._on_frames_deleted)
         self._frame_page.sendRequest.connect(self.sendRequest)
         self._frame_page.framesSaved.connect(self._save_to_pcap_requested)
         self._frame_page.openFuzzingRequest.connect(self.openFuzzingRequest)
@@ -64,3 +66,9 @@ class FramePageController(QObject):
         if frames_to_add:
             self._frame_page.add_frames(frames_to_add, group_id)
             log.info(f"Added {len(frames_to_add)} fuzzed frames to group {group_name}")
+
+    def _on_frames_deleted(self, ids):
+        for _id in ids:
+            self._frame_manager.remove_frame(_id)
+
+        self.framesDeleted.emit(ids)

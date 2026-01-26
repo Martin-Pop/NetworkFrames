@@ -212,6 +212,9 @@ class FrameManager:
     def get_frame(self, _id):
         return self.frames.get(str(_id), None)
 
+    def remove_frame(self, _id):
+        self.frames.pop(str(_id), None)
+
     def add(self, frame):
         log.debug(frame)
         new_frame = NetworkFrame(self._current_id, frame)
