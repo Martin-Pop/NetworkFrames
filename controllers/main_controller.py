@@ -39,6 +39,7 @@ class MainController(QObject):
         self._frame_page_controller.onFrameSelected.connect(self._on_editor_open)
         self._frame_page_controller.sendRequest.connect(self._on_send_frames_request)
         self._frame_page_controller.openFuzzingRequest.connect(self._on_fuzzing_requested)
+        self._frame_page_controller.framesDeleted.connect(self._editor_controller.close_editor_if_frame_was_deleted)
 
         # sender
         self._sender_controller = SenderController(self._window.sender_page, self._frame_manager)

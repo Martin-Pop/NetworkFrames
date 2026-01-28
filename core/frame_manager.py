@@ -137,11 +137,25 @@ class NetworkFrame(QObject):
             layer_field_map = {f.name: f for f in layer_cls.fields_desc}
 
             for key, val in raw_fields.items():
+                field_desc = remove_emph(layer_field_map.get(key))
+
+                if isinstance(val, (int, float)) and val == -1:
+                    val = None
 
                 if val is None or val == "":
-                    continue
+                    auto_calc_fields = [
+                        'len', 'chksum', 'check', 'checksum', 'crc',
+                        'type','proto','nh','nextheader'
+                    ]
 
-                field_desc = layer_field_map.get(key)
+                    if key in auto_calc_fields:
+                        log.debug(f"Field '{key}' is auto-calculated")
+                        continue
+
+                    if field_desc:
+                        val = self._get_zero_value(field_desc)
+                    else:
+                        continue
 
                 if field_desc and isinstance(val, str):
                     string_types = (
@@ -166,21 +180,20 @@ class NetworkFrame(QObject):
                         except:
                             pass
 
+                # adding raw
                 try:
                     test_layer = layer_cls(**{key: val})
                     bytes(test_layer)
-
                     final_fields[key] = val
-                except Exception as e:
-
+                except Exception:
                     if isinstance(val, str):
                         raw_data = val.encode('utf-8')
                     elif isinstance(val, bytes):
                         raw_data = val
                     else:
                         raw_data = str(val).encode('utf-8')
-
                     final_fields[key] = RawVal(raw_data)
+            # build
             try:
                 new_layer = layer_cls(**final_fields)
                 if packet is None:
@@ -190,10 +203,19 @@ class NetworkFrame(QObject):
             except Exception as e:
                 log.critical(f"Failed to build layer {class_name}: {e}")
 
+        # auto calculation
+        if packet:
+            try:
+                packet = packet.__class__(bytes(packet))
+            except Exception as e:
+                log.error(f"Failed to refresh packet fields: {e}")
+
         self._scapy_object = packet
+        # log.debug(self._scapy_object.show()
         self._update_info()
 
     def _get_zero_value(self, field_desc):
+        log.debug(type(field_desc))
         if isinstance(field_desc, (IPField, SourceIPField, DestIPField)):
             return "0.0.0.0"
         elif isinstance(field_desc, (MACField, SourceMACField, DestMACField)):
@@ -221,3 +243,13 @@ class FrameManager:
         self.frames[str(self._current_id)] = new_frame
         self._current_id += 1
         return new_frame
+
+def remove_emph(f):
+    """
+    Removes emphasis from a field if it exists.
+    :param f: field
+    :return: field without emphasis
+    """
+    if isinstance(f, Emph):
+        return f.fld
+    return f

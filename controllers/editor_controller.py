@@ -43,10 +43,11 @@ class EditorController(QObject):
         """
         data = self._editor_page.get_editor_data()
         frame = self._frame_manager.get_frame(self._current_id)
+        if not frame:
+            return
+
         frame.reconstruct_scapy(data)
         log.info("Frame saved")
-        # raw(frame.scapy)
-        # print(frame.scapy.show())
 
     def _close_editor(self):
         """
@@ -102,3 +103,7 @@ class EditorController(QObject):
         self._current_id = _id
 
         self._editor_page.switch(True)
+
+    def close_editor_if_frame_was_deleted(self, ids):
+        if self._current_id in ids:
+            self._close_editor()

@@ -157,13 +157,14 @@ class ScapyFieldRow(QWidget):
     def _setup_number(self, f, val):
         self.editor_widget = QDoubleSpinBox()
         self.editor_widget.setDecimals(0)
-        self.editor_widget.setRange(0, self._get_max_value(f))
-        self.editor_widget.setGroupSeparatorShown(False)
-        self.editor_widget.setValue(int(val) if val is not None else 0)
+        max_val = self._get_max_value(f)
+        self.editor_widget.setRange(-1, max_val)
 
-        self.editor_widget.valueChanged.connect(self._update_from_int)
-
+        self.editor_widget.setSpecialValueText("Auto")
+        initial_val = int(val) if val is not None else -1
+        self.editor_widget.setValue(initial_val)
         self.mid_layout.insertWidget(0, self.editor_widget)
+        self.editor_widget.valueChanged.connect(self._update_from_int)
         self._update_from_int(self.editor_widget.value())
 
     def _setup_enum(self, f, val):
@@ -256,7 +257,6 @@ class ScapyFieldRow(QWidget):
                 try:
                     txt = val.decode('utf-8')
                 except UnicodeDecodeError:
-                    # txt = val.hex()  # Volitelné, nebo nechat prázdné/garbage
                     txt = val.decode('utf-8', errors='replace')
             else:
                 txt = str(val)
@@ -289,6 +289,11 @@ class ScapyFieldRow(QWidget):
         """Updates Hex/Bin based on integer value with padding."""
         try:
             int_val = int(val)
+
+            if int_val == -1:
+                self.hex_display.setText("Auto")
+                self.bin_display.setText("Auto")
+                return
 
             total_bits = self._get_bits_count(self.field_desc, int_val)
 
