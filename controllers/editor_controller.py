@@ -10,7 +10,7 @@ class EditorController(QObject):
     def __init__(self, editor_page, frame_manager, builder, protocol_stack):
         super().__init__()
 
-        self._descriptions = builder.get_info()
+        self._descriptions = {}#builder.get_info()
 
         self._editor_page = editor_page
         self._frame_manager = frame_manager

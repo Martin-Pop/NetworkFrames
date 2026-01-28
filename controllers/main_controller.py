@@ -7,8 +7,7 @@ from controllers.receiver_controller import ReceiverController
 from controllers.sender_controller import SenderController
 from core.frame_manager import FrameManager
 from core.protocol_stack import ProtocolStack
-from protocols.protocol_builder import PacketBuilder
-from utils.json_loader import load_json_from_file
+from core.scapy_manager import ScapyManager
 
 
 class MainController(QObject):
@@ -20,7 +19,7 @@ class MainController(QObject):
         super().__init__()
         self._window = window
 
-        self._builder = PacketBuilder(load_json_from_file('protocol_map.json'))
+        self._builder = ScapyManager()
 
         self._frame_manager = FrameManager()
         self._protocol_stack = ProtocolStack(self._builder)
