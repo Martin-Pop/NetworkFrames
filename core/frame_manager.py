@@ -145,7 +145,7 @@ class NetworkFrame(QObject):
                 if val is None or val == "":
                     auto_calc_fields = [
                         'len', 'chksum', 'check', 'checksum', 'crc',
-                        'type','proto','nh','nextheader'
+                        'type','proto','nh','nextheader', "ihl"
                     ]
 
                     if key in auto_calc_fields:

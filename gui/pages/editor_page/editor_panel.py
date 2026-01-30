@@ -47,7 +47,7 @@ class ScapyFieldRow(QWidget):
         # bottom
         # [Bin display] [Hex display]
         self.bottom_view_container = QWidget()
-        self.bottom_view_layout = QHBoxLayout(self.bottom_view_container)
+        self.bottom_view_layout = QVBoxLayout(self.bottom_view_container)
         self.bottom_view_layout.setContentsMargins(0, 0, 0, 0)
         self.bottom_view_layout.setSpacing(5)
 
@@ -63,7 +63,6 @@ class ScapyFieldRow(QWidget):
         self.hex_display = QLineEdit()
         self.hex_display.setPlaceholderText("HEX")
         self.hex_display.setReadOnly(True)
-        self.hex_display.setFixedWidth(100)
 
         # Size Label
         size_str = self._get_size_string(field_desc)
@@ -308,10 +307,13 @@ class ScapyFieldRow(QWidget):
 
             self.bin_display.setText(formatted_bin)
 
-            # hex 4 bits = one symbol
-            # (total_bits + 3) // 4 => integer division with rounding up
-            hex_chars = (total_bits + 3) // 4
-            formatted_hex = f"0x{int_val:0{hex_chars}X}"
+            nibbles = (total_bits + 3) // 4
+            if nibbles % 2 != 0:
+                nibbles += 1
+
+            raw_hex = f"{int_val:0{nibbles}X}"
+            hex_chunks = [raw_hex[i:i + 2] for i in range(0, len(raw_hex), 2)]
+            formatted_hex = " ".join(hex_chunks)
 
             self.hex_display.setText(formatted_hex)
 

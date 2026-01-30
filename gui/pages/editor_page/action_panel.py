@@ -17,16 +17,14 @@ class ActionPanelWidget(QWidget):
         main_layout.setSpacing(5)
 
         self.btn_save = QPushButton("Save")
-        self.btn_validate = QPushButton("Validate")
         self.btn_exit = QPushButton("Exit")
 
         self.btn_save.clicked.connect(self.saveActivated)
         self.btn_exit.clicked.connect(self.exitActivated)
 
-        for btn in (self.btn_save, self.btn_validate, self.btn_exit):
+        for btn in (self.btn_save, self.btn_exit):
             btn.setProperty('styleClass', 'common_button')
             btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
         main_layout.addWidget(self.btn_save)
-        main_layout.addWidget(self.btn_validate)
         main_layout.addWidget(self.btn_exit)
