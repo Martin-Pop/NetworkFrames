@@ -90,9 +90,8 @@ class EditorPage(QStackedWidget):
 
         self.setCurrentIndex(0) # empty default
 
-    def update_info_panel(self, title, text):
-        formatted_text = f"<h3>{title}</h3><p>{text}</p>"
-        self.info_widget.set_text(formatted_text)
+    def update_info_panel(self,text):
+        self.info_widget.set_text(text)
 
     def clear_page(self):
         self.protocol_stack_widget.clear()

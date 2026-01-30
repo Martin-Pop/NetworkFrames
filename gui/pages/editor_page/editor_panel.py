@@ -99,12 +99,20 @@ class ScapyFieldRow(QWidget):
         return super().eventFilter(source, event)
 
     def _emit_info(self):
-        f = self.field_desc
-        info_text = f"<b>Type:</b> {f.__class__.__name__}<br>"
+        f = self._remove_emph(self.field_desc)
+
+        type_name = f.__class__.__name__.replace("Field", "")
+
+        info_text = f"<b>Type:</b> {type_name}<br>"
         info_text += f"<b>Size:</b> {self._get_size_string(f)}<br>"
 
-        if hasattr(f, "default"):
-            info_text += f"<b>Default:</b> {f.default}<br>"
+        if hasattr(f, "default") and f.default is not None:
+            try:
+                default_val = f.i2repr(None, f.default)
+            except:
+                default_val = str(f.default)
+
+            info_text += f"<b>Default:</b> {default_val}<br>"
 
         self.infoRequested.emit(self.cls_name, f.name, info_text)
 

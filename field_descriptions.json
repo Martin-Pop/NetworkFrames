@@ -1,0 +1,40 @@
+{
+  "Ether": {
+    "dst": {
+      "verbose_name": "Destination MAC",
+      "description": "The Media Access Control (MAC) address of the receiver."
+    },
+    "src": {
+      "verbose_name": "Source MAC",
+      "description": "The Media Access Control (MAC) address of the sender."
+    },
+    "type": {
+      "verbose_name": "EtherType",
+      "description": "Identifies the protocol encapsulated in the payload (e.g., IPv4 is 0x0800)."
+    }
+  },
+  "IP": {
+    "version": {
+      "verbose_name": "Version",
+      "description": "Indicates the version of the IP protocol (e.g., 4 for IPv4)."
+    },
+    "ihl": {
+      "verbose_name": "Header Length",
+      "description": "Internet Header Length. The number of 32-bit words in the header."
+    },
+    "ttl": {
+      "verbose_name": "Time to Live",
+      "description": "Limits the lifespan of the packet to prevent infinite looping."
+    }
+  },
+  "TCP": {
+    "sport": {
+      "verbose_name": "Source Port",
+      "description": "The port number of the sending process."
+    },
+    "dport": {
+      "verbose_name": "Destination Port",
+      "description": "The port number of the receiving process."
+    }
+  }
+}
