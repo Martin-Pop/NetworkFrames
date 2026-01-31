@@ -10,7 +10,9 @@ from gui.pages.receiver_page.receiver_capture_panel import ReceiverCapturePanel
 
 class ReceiverPage(QWidget):
     # Config Panel signals
-    configSaved = Signal(dict)
+
+    startListening = Signal(dict)
+    stopListening = Signal()
     syncRequested = Signal(dict)
 
     # Capture Panel signals
@@ -69,8 +71,11 @@ class ReceiverPage(QWidget):
 
     def _connect_internal_signals(self):
         # Forward signals from panels up to the controller
-        self.config_panel.configSaved.connect(self.configSaved)
+        self.config_panel.startListening.connect(self.startListening)
+        self.config_panel.stopListening.connect(self.stopListening)
+
         self.config_panel.syncRequested.connect(self.syncRequested)
+        self.config_panel.interfaceChanged.connect(self._on_interface_changed)
 
         self.config_panel.interfaceChanged.connect(self._on_interface_changed)
 
@@ -116,3 +121,6 @@ class ReceiverPage(QWidget):
 
     def clear_table(self):
         self.capture_panel.clear_table()
+
+    def set_listener_status(self, is_running, count=0):
+        self.config_panel.set_listener_status(is_running, count)

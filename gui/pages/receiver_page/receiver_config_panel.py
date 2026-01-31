@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QComboBox, QSpinBox, QPushButton,
-    QLineEdit, QMessageBox, QFrame, QSizePolicy
+    QLineEdit, QFrame
 )
 from PySide6.QtCore import Qt, Signal, QRegularExpression
 from PySide6.QtGui import QRegularExpressionValidator
@@ -9,10 +9,13 @@ import logging
 
 log = logging.getLogger(__name__)
 
+
 class ReceiverRemotePanel(QFrame):
     """
     Left/Top panel: Remote Device Settings.
+    Contains inputs for remote IP/Port and a Test Connection button.
     """
+    syncRequested = Signal(dict)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -23,6 +26,7 @@ class ReceiverRemotePanel(QFrame):
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(10)
 
         # Header
         header = QLabel("Remote Device")
@@ -41,6 +45,7 @@ class ReceiverRemotePanel(QFrame):
         self.ip_input = QLineEdit()
         self.ip_input.setPlaceholderText("e.g. 192.168.1.50")
         self.ip_input.setValidator(self.ip_validator)
+        self.ip_input.textChanged.connect(self._validate_inputs)
 
         self.port_spin = QSpinBox()
         self.port_spin.setRange(1024, 65535)
@@ -50,7 +55,23 @@ class ReceiverRemotePanel(QFrame):
         self.form_layout.addRow("Remote Port:", self.port_spin)
 
         layout.addLayout(self.form_layout)
+
+        self.sync_btn = QPushButton("Test Connection")
+        self.sync_btn.setMinimumHeight(35)
+        self.sync_btn.setProperty("styleClass", "common_button")
+        self.sync_btn.setEnabled(False)  # Disabled by default
+        self.sync_btn.clicked.connect(self._on_sync_clicked)
+
         layout.addStretch()
+        layout.addWidget(self.sync_btn)
+
+    def _validate_inputs(self):
+        text = self.ip_input.text().strip()
+        self.sync_btn.setEnabled(len(text) > 0)
+
+    def _on_sync_clicked(self):
+        data = self.get_data()
+        self.syncRequested.emit(data)
 
     def get_data(self):
         return {
@@ -58,16 +79,25 @@ class ReceiverRemotePanel(QFrame):
             "remote_port": self.port_spin.value()
         }
 
+    def set_sync_status(self, success, message=""):
+        if success:
+            self.sync_btn.setText(f"Connected! ({message})")
+        else:
+            self.sync_btn.setText(f"Failed ({message})")
+
 
 class ReceiverLocalPanel(QFrame):
     """
     Right/Bottom panel: Local Settings.
-    Styled to match SenderInfoPanel.
+    Controls the Listener server directly.
     """
     interfaceChanged = Signal(str)
+    startListening = Signal(dict)  # Emits config when start requested
+    stopListening = Signal()  # Emits when stop requested
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self._is_running = False
         self._init_ui()
 
     def _init_ui(self):
@@ -75,6 +105,7 @@ class ReceiverLocalPanel(QFrame):
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(10)
 
         # Header
         header = QLabel("Local Listener")
@@ -108,7 +139,19 @@ class ReceiverLocalPanel(QFrame):
         self.form_layout.addRow("MAC Address:", self.lbl_mac)
 
         layout.addLayout(self.form_layout)
+
+        self.status_lbl = QLabel("Status: Inactive")
+        self.status_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.status_lbl.setStyleSheet("color: gray; font-weight: bold;")
+        layout.addWidget(self.status_lbl)
+
+        self.action_btn = QPushButton("Start Listening")
+        self.action_btn.setMinimumHeight(35)
+        self.action_btn.setProperty("styleClass", "common_button")  # Or 'action_button'
+        self.action_btn.clicked.connect(self._on_action_clicked)
+
         layout.addStretch()
+        layout.addWidget(self.action_btn)
 
     def set_interfaces(self, int_list):
         self.interface_combo.blockSignals(True)
@@ -132,14 +175,44 @@ class ReceiverLocalPanel(QFrame):
             self.lbl_ip.setText("-")
             self.lbl_mac.setText("-")
             return
-
         ips = interface_data.get("ips", None)
-        if ips:
-            self.lbl_ip.setText('\n'.join(ips))
-        else:
-            self.lbl_ip.setText("Unknown")
-
+        self.lbl_ip.setText('\n'.join(ips) if ips else "Unknown")
         self.lbl_mac.setText(interface_data.get("mac", "Unknown"))
+
+    def _on_action_clicked(self):
+        if self._is_running:
+            self.stopListening.emit()
+        else:
+            config = self.get_data()
+            self.startListening.emit(config)
+
+    def set_listening_state(self, is_running, client_count=0):
+        """
+        Updates the UI to reflect the engine state.
+        """
+        self._is_running = is_running
+
+        if is_running:
+            self.action_btn.setText("Stop Listening")
+
+            if client_count > 0:
+                self.status_lbl.setText(f"Status: Active ({client_count} connected)")
+                self.status_lbl.setStyleSheet("color: green; font-weight: bold;")
+            else:
+                self.status_lbl.setText("Status: Listening...")
+                self.status_lbl.setStyleSheet("color: green; font-weight: bold;")
+
+            # Lock inputs while running
+            self.interface_combo.setEnabled(False)
+            self.port_spin.setEnabled(False)
+        else:
+            self.action_btn.setText("Start Listening")
+            self.status_lbl.setText("Status: Inactive")
+            self.status_lbl.setStyleSheet("color: gray; font-weight: bold;")
+
+            # Unlock inputs
+            self.interface_combo.setEnabled(True)
+            self.port_spin.setEnabled(True)
 
     def get_data(self):
         return {
@@ -150,9 +223,11 @@ class ReceiverLocalPanel(QFrame):
 
 class ReceiverConfigurationPanel(QWidget):
     """
-    Main container for the configuration view.
+    Main container.
     """
-    configSaved = Signal(dict)
+    # Signals to Controller
+    startListening = Signal(dict)  # Formerly configSaved
+    stopListening = Signal()
     syncRequested = Signal(dict)
     interfaceChanged = Signal(str)
 
@@ -174,67 +249,14 @@ class ReceiverConfigurationPanel(QWidget):
         panels_layout.addWidget(self.local_panel, 1)
 
         main_layout.addLayout(panels_layout)
-
-        footer_widget = QWidget()
-        footer_layout = QVBoxLayout(footer_widget)
-
-        self.status_lbl = QLabel("Status: Not Synced")
-        self.status_lbl.setObjectName("ReceiverStatusLabel")
-        self.status_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        btn_layout = QHBoxLayout()
-
-        self.save_btn = QPushButton("Save Configuration")
-        self.save_btn.setMinimumHeight(35)
-        self.save_btn.setProperty("styleClass", "common_button")
-        self.save_btn.clicked.connect(self._on_save_clicked)
-
-        self.sync_btn = QPushButton("Sync / Test Connection")
-        self.sync_btn.setMinimumHeight(35)
-        self.sync_btn.setProperty("styleClass", "common_button")
-        self.sync_btn.clicked.connect(self._on_sync_clicked)
-        self.sync_btn.setEnabled(False)
-
-        btn_layout.addWidget(self.save_btn)
-        btn_layout.addWidget(self.sync_btn)
-
-        footer_layout.addWidget(self.status_lbl)
-        footer_layout.addLayout(btn_layout)
-
-        main_layout.addWidget(footer_widget)
+        # Footer is gone, buttons are inside panels
 
     def _connect_signals(self):
         self.local_panel.interfaceChanged.connect(self.interfaceChanged)
+        self.local_panel.startListening.connect(self.startListening)
+        self.local_panel.stopListening.connect(self.stopListening)
 
-    def _on_save_clicked(self):
-        config = self.get_config()
-
-        if not config['remote_ip']:
-            QMessageBox.warning(self, "Validation Error", "Please enter a valid Remote IP address.")
-            return
-
-        self.configSaved.emit(config)
-
-        self.sync_btn.setEnabled(True)
-        self.status_lbl.setText("Status: Configuration Saved")
-        self.status_lbl.setProperty("status", "saved")
-        self.status_lbl.style().unpolish(self.status_lbl)
-        self.status_lbl.style().polish(self.status_lbl)
-
-    def _on_sync_clicked(self):
-        config = self.get_config()
-        self.status_lbl.setText("Status: Syncing...")
-        self.status_lbl.setProperty("status", "syncing")
-        self.status_lbl.style().unpolish(self.status_lbl)
-        self.status_lbl.style().polish(self.status_lbl)
-
-        self.syncRequested.emit(config)
-
-    def get_config(self):
-        data = {}
-        data.update(self.remote_panel.get_data())
-        data.update(self.local_panel.get_data())
-        return data
+        self.remote_panel.syncRequested.connect(self.syncRequested)
 
     def set_interfaces(self, ifaces):
         self.local_panel.set_interfaces(ifaces)
@@ -243,12 +265,13 @@ class ReceiverConfigurationPanel(QWidget):
         self.local_panel.update_interface_info(interface_data)
 
     def set_sync_status(self, success, message=""):
-        if success:
-            self.status_lbl.setText(f"Status: Synced! ({message})")
-            self.status_lbl.setProperty("status", "success")
-        else:
-            self.status_lbl.setText(f"Status: Sync Failed ({message})")
-            self.status_lbl.setProperty("status", "error")
+        self.remote_panel.set_sync_status(success, message)
 
-        self.status_lbl.style().unpolish(self.status_lbl)
-        self.status_lbl.style().polish(self.status_lbl)
+    def set_listener_status(self, is_running, client_count=0):
+        self.local_panel.set_listening_state(is_running, client_count)
+
+    def get_remote_config(self):
+        return self.remote_panel.get_data()
+
+    def get_local_config(self):
+        return self.local_panel.get_data()
