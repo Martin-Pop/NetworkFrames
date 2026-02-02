@@ -8,12 +8,14 @@ from PySide6.QtGui import QAction, QColor, QBrush
 from PySide6.QtCore import Qt, Signal, QPoint
 
 from core.input_output.files import get_file, save_file
+from gui.pages.frame_page.hexdump_window import HexDumpWindow
 
 import uuid
 
 # ROLES
 ROLE_ID = Qt.ItemDataRole.UserRole + 1
 ROLE_IS_GROUP = Qt.ItemDataRole.UserRole + 2
+ROLE_FRAME = Qt.ItemDataRole.UserRole + 3
 
 
 class FrameListPanel(QTreeWidget):
@@ -30,6 +32,8 @@ class FrameListPanel(QTreeWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+
+        self._opened_windows = []
 
         self.item_map = {}  # frame_id : QTreeWidgetItem
         self.group_map = {}
@@ -157,6 +161,8 @@ class FrameListPanel(QTreeWidget):
         :param frame: frame with info
         """
 
+        item.setData(0, ROLE_FRAME, frame)
+
         def on_info_updated():
             info = frame.get_info()
             item.setText(0, str(info["id"]))
@@ -270,6 +276,11 @@ class FrameListPanel(QTreeWidget):
                     fuzz_act = QAction("Fuzz")
                     fuzz_act.triggered.connect(lambda: self.openFuzzingRequest.emit(current_id))
                     menu.addAction(fuzz_act)
+
+                    menu.addSeparator()
+                    hex_act = QAction("Show Hexdump")
+                    hex_act.triggered.connect(lambda: self._open_hexdump_window(item))
+                    menu.addAction(hex_act)
 
                 menu.addSeparator()
 
@@ -500,3 +511,16 @@ class FrameListPanel(QTreeWidget):
 
             idx = self.indexOfTopLevelItem(group_item)
             self.takeTopLevelItem(idx)
+
+    def _open_hexdump_window(self, item):
+        frame = item.data(0, ROLE_FRAME)
+        if frame:
+            window = HexDumpWindow(frame)
+
+            self._opened_windows.append(window)
+            window.destroyed.connect(lambda: self._cleanup_window(window))
+            window.show()
+
+    def _cleanup_window(self, window):
+        if window in self._opened_windows:
+            self._opened_windows.remove(window)

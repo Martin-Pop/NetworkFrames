@@ -490,3 +490,16 @@ ScapyFieldRow QLabel {
 ProtocolEditorDialog {
     background-color: @BG;
 }
+
+QWidget {
+    selection-background-color: @PRIMARY;
+    selection-color: @PRIMARY_TEXT;
+}
+
+QTextEdit#hexdump_text_edit {
+    background-color: @BG;
+    color: @SECONDARY;
+    border: none;
+
+    font-size: 16px;
+}
