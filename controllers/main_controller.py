@@ -77,8 +77,9 @@ class MainController(QObject):
         self._window.switch_to('frames')
 
     def _on_fuzzing_requested(self, frame_id):
-        self._fuzzing_controller.load_fuzzer(frame_id)
-        self._window.switch_to('fuzzing')
+        success = self._fuzzing_controller.load_fuzzer(frame_id)
+        if success:
+            self._window.switch_to('fuzzing')
 
     def _on_fuzzing_finished(self, ids, group_name):
         self._frame_page_controller.add_fuzzed_batch(ids, group_name)

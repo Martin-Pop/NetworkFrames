@@ -31,7 +31,7 @@ class FuzzingPage(QWidget):
         self.header_widget.setObjectName('sender_target')  # reuse
         header_layout = QVBoxLayout(self.header_widget)
 
-        self.frame_label = QLabel("Fuzzing Session: { No Frame Selected }")
+        self.frame_label = QLabel("Fuzzing Target: None selected")
         header_layout.addWidget(self.frame_label)
 
         self.main_layout.addWidget(self.header_widget)
@@ -81,7 +81,7 @@ class FuzzingPage(QWidget):
         :param frame_desc: description of the frame
         :param scapy_pkt: scapy object
         """
-        self.frame_label.setText(f"Fuzzing Session: {frame_desc}")
+        self.frame_label.setText(f"Fuzzing Target: {frame_desc}")
 
         # load tree
         self.target_panel.load_packet_structure(scapy_pkt)
@@ -94,7 +94,7 @@ class FuzzingPage(QWidget):
         self.current_field = None
 
     def reset_fuzzer(self):
-        self.frame_label.setText("Fuzzing Session: { No Frame Selected }")
+        self.frame_label.setText("Fuzzing Target: None selected")
         self.target_panel.reset()
         self.strategy_panel.setEnabled(True)
         self.btns_panel.set_generate_enabled(True)

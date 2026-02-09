@@ -13,7 +13,9 @@ class ReceiverPage(QWidget):
 
     startListening = Signal(dict)
     stopListening = Signal()
-    syncRequested = Signal(dict)
+
+    pingRequested = Signal(str, int)
+    remoteConfigChanged = Signal(dict)
 
     # Capture Panel signals
     clearRequested = Signal()
@@ -74,11 +76,10 @@ class ReceiverPage(QWidget):
         self.config_panel.startListening.connect(self.startListening)
         self.config_panel.stopListening.connect(self.stopListening)
 
-        self.config_panel.syncRequested.connect(self.syncRequested)
-        self.config_panel.interfaceChanged.connect(self._on_interface_changed)
+        self.config_panel.pingRequested.connect(self.pingRequested)
+        self.config_panel.remoteConfigChanged.connect(self.remoteConfigChanged)
 
         self.config_panel.interfaceChanged.connect(self._on_interface_changed)
-
         self.capture_panel.clearRequested.connect(self.clearRequested)
         self.capture_panel.saveRequested.connect(self.saveRequested)
 
@@ -113,9 +114,6 @@ class ReceiverPage(QWidget):
         selected_data = next((i for i in self.current_interfaces if i["name"] == iface_name), None)
         self.config_panel.update_local_interface_info(selected_data)
 
-    def set_sync_status(self, success, message=""):
-        self.config_panel.set_sync_status(success, message)
-
     def add_packet_to_table(self, packet_data):
         self.capture_panel.add_packet(packet_data)
 
@@ -124,3 +122,6 @@ class ReceiverPage(QWidget):
 
     def set_listener_status(self, is_running, count=0):
         self.config_panel.set_listener_status(is_running, count)
+
+    def set_ping_result(self, success):
+        self.config_panel.set_ping_result(success)

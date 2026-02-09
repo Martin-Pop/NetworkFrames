@@ -31,16 +31,17 @@ class FuzzingController(QObject):
 
         frame = self._frame_manager.get_frame(frame_id)
         if not frame:
-            return
+            return False
 
         scapy_pkt = frame.scapy
         if not scapy_pkt:
             log.warning(f"Can not fuzz frame #{frame_id} because it has no layers")
-            return
+            return False
 
         info_text = f"Frame #{frame.id}"
         self._current_frame_id = frame_id
         self._fuzzing_page.set_frame(info_text, scapy_pkt)
+        return True
 
     def _on_back_clicked(self):
         self._fuzzing_page.reset_fuzzer()

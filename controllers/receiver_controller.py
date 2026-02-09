@@ -1,19 +1,24 @@
-from PySide6.QtCore import QObject, Slot
+from PySide6.QtCore import QObject, Slot, Signal
 from core.input_output.interfaces import get_interfaces
 from core.receiver_engine import ReceiverEngine
+from core.remote_client import RemoteClient, ConnectionWorker
 import logging
-import socket
 
 log = logging.getLogger(__name__)
 
 
 class ReceiverController(QObject):
+    remoteConnectionChanged = Signal(bool, str, int)
+
     def __init__(self, main_controller):
         super().__init__()
         self.main_ctrl = main_controller
         self._receiver_page = None
         self._engine = None
         self._client_count = 0
+
+        self._remote_client = RemoteClient()
+        self._conn_worker = None
 
     def set_view(self, receiver_page):
         self._receiver_page = receiver_page
@@ -24,9 +29,13 @@ class ReceiverController(QObject):
         self._receiver_page.startListening.connect(self._on_start_listening)
         self._receiver_page.stopListening.connect(self._on_stop_listening)
 
-        self._receiver_page.syncRequested.connect(self._on_sync_requested)
         self._receiver_page.clearRequested.connect(self._on_clear_requested)
         self._receiver_page.saveRequested.connect(self._on_save_pcap_requested)
+
+        self._receiver_page.pingRequested.connect(self._on_ping_requested)
+        # self._receiver_page.remoteConfigChanged.connect(self._on_remote_config_changed)
+
+        # self._remote_client.connectionLost.connect(self._on_connection_lost)
 
     def _init_data(self):
         try:
@@ -34,22 +43,14 @@ class ReceiverController(QObject):
         except Exception as e:
             log.error(f"Failed to load interfaces: {e}")
 
-
-    @Slot(dict)
     def _on_start_listening(self, config):
-        """
-        Starts the ReceiverEngine with the provided config.
-        :param config: configuration with ip and port
-        """
         local_port = config.get('local_port')
         local_iface_name = config.get('local_iface')
-
         bind_ip = "0.0.0.0"
 
         try:
             all_interfaces = get_interfaces()
             selected_iface = next((i for i in all_interfaces if i['name'] == local_iface_name), None)
-
             if selected_iface and selected_iface.get('ips'):
                 bind_ip = selected_iface['ips'][1]
 
@@ -72,7 +73,6 @@ class ReceiverController(QObject):
 
         self._engine.start()
 
-    @Slot()
     def _on_stop_listening(self):
         """
         Stops the ReceiverEngine.
@@ -100,56 +100,22 @@ class ReceiverController(QObject):
     def _on_data_received(self, data):
         try:
             msg = data.decode('utf-8', errors='replace')
-            log.debug(f"Received data ({len(data)} bytes): {msg}")
-
-            #mock for now
-            fake_packet_data = {
-                "time": "Now",
-                "src": "Remote",
-                "dst": "Local",
-                "protocol": "TCP/RAW",
-                "len": len(data),
-                "info": msg[:50] + "..." if len(msg) > 50 else msg
-            }
-            self.handle_incoming_packet(fake_packet_data)
-
+            log.debug(f"Received {msg}")
         except Exception as e:
             log.error(f"Error processing data: {e}")
 
+    def _on_ping_requested(self, ip, port):
+        success = self._remote_client.ping_host(ip, port)
+        self._receiver_page.set_ping_result(success)
+        if success:
+            log.info(f"Ping {ip}:{port} succeeded")
+        else:
+            log.error(f"Ping {ip}:{port} failed")
 
-    @Slot(dict)
-    def _on_sync_requested(self, config):
-        """
-        Tries to connect to the Remote Device defined in settings to verify reachability.
-        :param config: ip and port
-        """
-        remote_ip = config.get('remote_ip')
-        remote_port = config.get('remote_port')
 
-        log.info(f"Syncing (Checking connection) with remote device at {remote_ip}:{remote_port}...")
-
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(2.0)
-
-        try:
-            result = sock.connect_ex((remote_ip, remote_port))
-            if result == 0:
-                self._receiver_page.set_sync_status(True, "Connected / Available")
-                log.info("Sync success!")
-            else:
-                self._receiver_page.set_sync_status(False, f"Unreachable (Err: {result})")
-                log.warning("Sync failed: Host unreachable or connection refused")
-        except Exception as e:
-            self._receiver_page.set_sync_status(False, f"Error: {str(e)}")
-            log.error(f"Sync exception: {e}")
-        finally:
-            sock.close()
-
-    @Slot()
     def _on_clear_requested(self):
         self._receiver_page.clear_table()
 
-    @Slot()
     def _on_save_pcap_requested(self):
         log.info("Export PCAP requested (Not implemented yet)")
 

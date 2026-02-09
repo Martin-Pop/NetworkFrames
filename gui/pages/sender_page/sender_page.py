@@ -56,9 +56,7 @@ class SenderPage(QWidget):
         splitter.addWidget(left_w)
         splitter.addWidget(right_w)
 
-        self.main_layout.addWidget(splitter)
-
-        self.main_layout.addStretch()
+        self.main_layout.addWidget(splitter, 1)
 
         # 4. actions Stats | Buttons
         action_area = QHBoxLayout()

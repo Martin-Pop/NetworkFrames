@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFormLayout,
     QLabel, QComboBox, QSpinBox, QPushButton,
-    QLineEdit, QFrame
+    QLineEdit, QFrame, QApplication
 )
 from PySide6.QtCore import Qt, Signal, QRegularExpression
 from PySide6.QtGui import QRegularExpressionValidator
@@ -15,7 +15,8 @@ class ReceiverRemotePanel(QFrame):
     Left/Top panel: Remote Device Settings.
     Contains inputs for remote IP/Port and a Test Connection button.
     """
-    syncRequested = Signal(dict)
+    pingRequested = Signal(str, int)
+    configChanged = Signal(dict)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -39,39 +40,48 @@ class ReceiverRemotePanel(QFrame):
 
         # Validator
         ip_regex = QRegularExpression(r"^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$")
-        self.ip_validator = QRegularExpressionValidator(ip_regex)
 
-        # Inputs
-        self.ip_input = QLineEdit()
-        self.ip_input.setPlaceholderText("e.g. 192.168.1.50")
-        self.ip_input.setValidator(self.ip_validator)
-        self.ip_input.textChanged.connect(self._validate_inputs)
+        #IP
+        self.ip_input = QLineEdit("127.0.0.1")
+        self.ip_input.setValidator(QRegularExpressionValidator(ip_regex))
+        self.ip_input.editingFinished.connect(self._emit_config)
 
+        # Port
         self.port_spin = QSpinBox()
         self.port_spin.setRange(1024, 65535)
         self.port_spin.setValue(5000)
+        self.port_spin.valueChanged.connect(self._emit_config)
 
         self.form_layout.addRow("Remote IP:", self.ip_input)
         self.form_layout.addRow("Remote Port:", self.port_spin)
-
         layout.addLayout(self.form_layout)
 
-        self.sync_btn = QPushButton("Test Connection")
-        self.sync_btn.setMinimumHeight(35)
-        self.sync_btn.setProperty("styleClass", "common_button")
-        self.sync_btn.setEnabled(False)  # Disabled by default
-        self.sync_btn.clicked.connect(self._on_sync_clicked)
-
         layout.addStretch()
-        layout.addWidget(self.sync_btn)
 
-    def _validate_inputs(self):
-        text = self.ip_input.text().strip()
-        self.sync_btn.setEnabled(len(text) > 0)
+        self.status_lbl = QLabel("Ready")
+        self.status_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.status_lbl.setStyleSheet("color: gray;")
+        layout.addWidget(self.status_lbl)
 
-    def _on_sync_clicked(self):
-        data = self.get_data()
-        self.syncRequested.emit(data)
+        # Test
+        self.test_btn = QPushButton("Test Connection")
+        self.test_btn.setProperty("styleClass", "common_button")
+        self.test_btn.clicked.connect(self._on_test_clicked)
+        layout.addWidget(self.test_btn)
+
+    def _on_test_clicked(self):
+        ip = self.ip_input.text()
+        port = self.port_spin.value()
+
+        self.status_lbl.setText("Testing...")
+        self.status_lbl.setStyleSheet("color: orange;")
+        self.test_btn.setEnabled(False)
+        QApplication.processEvents()
+
+        self.pingRequested.emit(ip, port)
+
+    def _emit_config(self):
+        self.configChanged.emit(self.get_data())
 
     def get_data(self):
         return {
@@ -79,11 +89,14 @@ class ReceiverRemotePanel(QFrame):
             "remote_port": self.port_spin.value()
         }
 
-    def set_sync_status(self, success, message=""):
+    def set_ping_result(self, success):
+        self.test_btn.setEnabled(True)
         if success:
-            self.sync_btn.setText(f"Connected! ({message})")
+            self.status_lbl.setText("Online / Reachable")
+            self.status_lbl.setStyleSheet("color: green; font-weight: bold;")
         else:
-            self.sync_btn.setText(f"Failed ({message})")
+            self.status_lbl.setText(f"Unreachable")
+            self.status_lbl.setStyleSheet("color: red;")
 
 
 class ReceiverLocalPanel(QFrame):
@@ -143,6 +156,8 @@ class ReceiverLocalPanel(QFrame):
         self.status_lbl = QLabel("Status: Inactive")
         self.status_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.status_lbl.setStyleSheet("color: gray; font-weight: bold;")
+
+        layout.addStretch()
         layout.addWidget(self.status_lbl)
 
         self.action_btn = QPushButton("Start Listening")
@@ -150,7 +165,6 @@ class ReceiverLocalPanel(QFrame):
         self.action_btn.setProperty("styleClass", "common_button")  # Or 'action_button'
         self.action_btn.clicked.connect(self._on_action_clicked)
 
-        layout.addStretch()
         layout.addWidget(self.action_btn)
 
     def set_interfaces(self, int_list):
@@ -222,41 +236,32 @@ class ReceiverLocalPanel(QFrame):
 
 
 class ReceiverConfigurationPanel(QWidget):
-    """
-    Main container.
-    """
-    # Signals to Controller
-    startListening = Signal(dict)  # Formerly configSaved
+    startListening = Signal(dict)
     stopListening = Signal()
-    syncRequested = Signal(dict)
     interfaceChanged = Signal(str)
+
+    pingRequested = Signal(str, int)
+    remoteConfigChanged = Signal(dict)
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self._init_ui()
-        self._connect_signals()
-
-    def _init_ui(self):
         main_layout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
-
-        panels_layout = QHBoxLayout()
+        panels = QHBoxLayout()
 
         self.remote_panel = ReceiverRemotePanel()
         self.local_panel = ReceiverLocalPanel()
 
-        panels_layout.addWidget(self.remote_panel, 1)
-        panels_layout.addWidget(self.local_panel, 1)
+        panels.addWidget(self.remote_panel, 1)
+        panels.addWidget(self.local_panel, 1)
+        main_layout.addLayout(panels)
 
-        main_layout.addLayout(panels_layout)
-        # Footer is gone, buttons are inside panels
-
-    def _connect_signals(self):
         self.local_panel.interfaceChanged.connect(self.interfaceChanged)
         self.local_panel.startListening.connect(self.startListening)
         self.local_panel.stopListening.connect(self.stopListening)
 
-        self.remote_panel.syncRequested.connect(self.syncRequested)
+        self.remote_panel.pingRequested.connect(self.pingRequested)
+        self.remote_panel.configChanged.connect(self.remoteConfigChanged)
 
     def set_interfaces(self, ifaces):
         self.local_panel.set_interfaces(ifaces)
@@ -264,14 +269,8 @@ class ReceiverConfigurationPanel(QWidget):
     def update_local_interface_info(self, interface_data):
         self.local_panel.update_interface_info(interface_data)
 
-    def set_sync_status(self, success, message=""):
-        self.remote_panel.set_sync_status(success, message)
-
     def set_listener_status(self, is_running, client_count=0):
         self.local_panel.set_listening_state(is_running, client_count)
 
-    def get_remote_config(self):
-        return self.remote_panel.get_data()
-
-    def get_local_config(self):
-        return self.local_panel.get_data()
+    def set_ping_result(self, success):
+        self.remote_panel.set_ping_result(success)
