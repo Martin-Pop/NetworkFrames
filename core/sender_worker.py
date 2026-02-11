@@ -25,6 +25,10 @@ class SenderWorker(QThread):
     def run(self):
         sent_count = 0
         try:
+
+            if not self.original_packets:
+                raise Exception("Frames are empty")
+
             while self._is_running:
                 if self.count != -1 and sent_count >= self.count:
                     break
@@ -52,9 +56,9 @@ class SenderWorker(QThread):
 
         except Exception as e:
             self.errorOccurred.emit(str(e))
-
-        log.debug('sender finished, emitting signal now')
-        self.finished.emit()
+        finally:
+            log.debug('sender finished, emitting signal now')
+            self.finished.emit()
 
     def stop(self):
         self._is_running = False

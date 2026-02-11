@@ -7,6 +7,9 @@ from gui.pages.sender_page.sender_conf_panel import SenderConfPanel, SenderInfoP
 from gui.pages.sender_page.sender_stats_panel import SenderStatsPanel
 from gui.pages.sender_page.sender_buttons_panel import SenderButtonsPanel
 
+import logging
+
+log = logging.getLogger(__name__)
 
 class SenderPage(QWidget):
     # Re-emit signals to controller
@@ -31,7 +34,7 @@ class SenderPage(QWidget):
         self.target_widget.setObjectName('sender_target')
         target_layout = QVBoxLayout(self.target_widget)
 
-        self.frame_label = QLabel("Frame: { No Frame Selected }")
+        self.frame_label = QLabel("ID / Group: None selected")
         target_layout.addWidget(self.frame_label)
 
         self.main_layout.addWidget(self.target_widget)
@@ -95,8 +98,8 @@ class SenderPage(QWidget):
         selected_data = next((i for i in self.current_interfaces if i["name"] == iface_name), None)
         self.info_panel.update_info(selected_data)
 
-    def set_frame_info(self, frame_desc):
-        self.frame_label.setText(f"Frame: {frame_desc}")
+    def set_frame_info(self, identification, description):
+        self.frame_label.setText(f"ID / Group - {identification}: {description}")
         self.stats_panel.update_count(0)
         self.stats_panel.set_status("Ready", "green")
 
@@ -117,6 +120,7 @@ class SenderPage(QWidget):
             self.stats_panel.set_status("Sending...", "green")
 
     def show_error(self, message):
+        log.error(message)
         self.stats_panel.set_status(message, "red")
 
     def update_counter(self, count):

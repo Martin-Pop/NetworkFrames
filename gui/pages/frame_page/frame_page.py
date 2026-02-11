@@ -11,7 +11,7 @@ class FramePage(QFrame):
     framesDeleted = Signal(list)  # when frames get deleted
     framesSaved = Signal(str, list)
     addNewFrame = Signal(str, str)  # when new frame is added
-    sendRequest = Signal(list)
+    sendRequest = Signal(list, str)
     openFuzzingRequest = Signal(int)
 
     def __init__(self, parent=None):

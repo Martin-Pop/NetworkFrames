@@ -27,7 +27,7 @@ class FrameListPanel(QTreeWidget):
     framesDeleted = Signal(list)
     framesSaved = Signal(str, list) # path and list of ids
     addNewFrame = Signal(str, str)  # path or empty string, uuid (group id) or empty string
-    sendRequest = Signal(list)
+    sendRequest = Signal(list, str)
     openFuzzingRequest = Signal(int)
 
     def __init__(self, parent=None):
@@ -334,22 +334,25 @@ class FrameListPanel(QTreeWidget):
         :param selected_items: selected items
         """
         ids = []
+        group_name = ''
         for item in selected_items:
             if item.data(0, ROLE_IS_GROUP):
+                group_name = item.text(0)
                 for i in range(item.childCount()):
                     ids.append(item.child(i).data(0, ROLE_ID))
             else:
                 ids.append(item.data(0, ROLE_ID))
 
-        self.sendRequest.emit(ids)
+        self.sendRequest.emit(ids, group_name)
 
     def _send_group(self, group_item):
         ids = []
+        group_name = group_item.text(0)
         for i in range(group_item.childCount()):
             child = group_item.child(i)
             ids.append(child.data(0, ROLE_ID))
 
-        self.sendRequest.emit(ids)
+        self.sendRequest.emit(ids, group_name)
 
     def _create_empty_group(self):
         group_item = self._create_group()

@@ -14,7 +14,8 @@ class SenderController(QObject):
         self._frame_manager = frame_manager
 
         self._worker = None
-        self._current_frame_ids = None
+        self._identification = ''
+        self._current_frame_ids = []
 
         # signals
         self._sender_page.startClicked.connect(self._start_sending)
@@ -24,25 +25,29 @@ class SenderController(QObject):
 
         self._sender_page.set_interfaces(get_interfaces())
 
-    def load_frames(self, ids):
+    def load_frames(self, ids, group_name):
         """
         Saves the frame ids and updates UI
         :param ids: ids to save
-        :return:
+        :param group_name: name of group in which frames are
         """
+
         log.debug(f"Loading: {ids}")
         self._current_frame_ids = ids
+
+        if not ids:
+            self._identification = "None selected"
+            self._sender_page.set_frame_info(self._identification, '')
+            return
+
         if len(ids) == 1:
             frame = self._frame_manager.get_frame(ids[0])
             if frame:
-                self._sender_page.set_frame_info(str(frame.get_info()))
+                self._identification = ids[0]
+                self._sender_page.set_frame_info(self._identification, str(frame.get_info().get('info', 'Info unavailable')))
         else:
-            self._sender_page.set_frame_info(str(ids))
-
-            # self._sender_page.update_counter(0)
-            # self._sender_page.set_running_state(False)
-
-        # self._sender_page.reset_status() #
+            self._identification = group_name if group_name else 'mixed selection'
+            self._sender_page.set_frame_info(self._identification, f"({len(ids)}) frames")
 
     def _start_sending(self):
         """
@@ -58,7 +63,7 @@ class SenderController(QObject):
         for frame_id in self._current_frame_ids:
             frame = self._frame_manager.get_frame(frame_id)
             if not frame or not frame.scapy:
-                self._sender_page.show_error("Invalid frame data")
+                # self._sender_page.show_error(f"Invalid frame data - ID: {frame_id}")
                 continue
             scapy_pkts.append(frame.scapy)
 
@@ -77,9 +82,6 @@ class SenderController(QObject):
 
         self._sender_page.set_running_state(True)
         self._worker.start()
-
-        # self._sender_page.set_running_state(True)
-        # self._sender_page.update_counter(0)
 
     def _stop_sending(self):
         if self._worker and self._worker.isRunning():
@@ -102,3 +104,13 @@ class SenderController(QObject):
     def _close_sender(self):
         self._stop_sending()
         self.senderClosed.emit()
+
+    def sync_current_with_removed_frames(self, ids):
+        """
+        Syncs current frames that are
+        :param ids:
+        :return:
+        """
+        if not set(ids).isdisjoint(self._current_frame_ids):
+            new_ids = list(set(self._current_frame_ids) - set(ids))
+            self.load_frames(new_ids, self._identification)

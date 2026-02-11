@@ -7,7 +7,7 @@ log = logging.getLogger(__name__)
 class FramePageController(QObject):
 
     onFrameSelected = Signal(int)
-    sendRequest = Signal(list)
+    sendRequest = Signal(list, str)
     framesDeleted = Signal(list)
     openFuzzingRequest = Signal(int)
 

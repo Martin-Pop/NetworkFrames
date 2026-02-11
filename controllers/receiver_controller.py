@@ -68,6 +68,7 @@ class ReceiverController(QObject):
         self._engine.serverStarted.connect(self._on_server_started)
         self._engine.serverStopped.connect(self._on_server_stopped)
         self._engine.clientConnected.connect(self._on_client_connected)
+        self._engine.clientDisconnected.connect(self._on_client_disconnected)
         self._engine.dataReceived.connect(self._on_data_received)
         self._engine.errorOccurred.connect(self._on_engine_error)
 
@@ -93,6 +94,10 @@ class ReceiverController(QObject):
         self._client_count += 1
         self._receiver_page.set_listener_status(True, self._client_count)
 
+    def _on_client_disconnected(self, ip, port):
+        self._client_count -= 1
+        self._receiver_page.set_listener_status(True, self._client_count)
+
     def _on_engine_error(self, error_msg):
         log.error(f"Engine Error: {error_msg}")
         self._receiver_page.set_listener_status(False, 0)
@@ -108,9 +113,9 @@ class ReceiverController(QObject):
         success = self._remote_client.ping_host(ip, port)
         self._receiver_page.set_ping_result(success)
         if success:
-            log.info(f"Ping {ip}:{port} succeeded")
+            log.info(f"Connection test to {ip}:{port} succeeded")
         else:
-            log.error(f"Ping {ip}:{port} failed")
+            log.error(f"Connection test to {ip}:{port} failed")
 
 
     def _on_clear_requested(self):

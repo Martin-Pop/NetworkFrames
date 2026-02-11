@@ -15,7 +15,7 @@ class ReceiverEngine(QThread):
     serverStarted = Signal(str, int)
     serverStopped = Signal()
     clientConnected = Signal(str, int)
-    clientDisconnected = Signal()
+    clientDisconnected = Signal(str, int)
 
     dataReceived = Signal(bytes)
     reportReceived = Signal(list)
@@ -45,7 +45,7 @@ class ReceiverEngine(QThread):
                     self._server_socket.settimeout(1.0)
                     conn, addr = self._server_socket.accept()
 
-                    log.info(f"Remote Device connected from {addr}")
+                    log.debug(f"Remote Device connected from {addr}")
                     self.clientConnected.emit(addr[0], addr[1])
                     self._active_conn = conn
 
@@ -63,8 +63,8 @@ class ReceiverEngine(QThread):
                                 break
 
                     self._active_conn = None
-                    self.clientDisconnected.emit()
-                    log.info(f"Remote Device {addr} disconnected")
+                    self.clientDisconnected.emit(addr[0], addr[1])
+                    log.debug(f"Remote Device {addr} disconnected")
 
                 except socket.timeout:
                     continue
@@ -74,7 +74,6 @@ class ReceiverEngine(QThread):
                     break
 
         except Exception as e:
-            log.error(f"Receiver Engine Error: {e}")
             self.errorOccurred.emit(str(e))
         finally:
             self.stop()
@@ -89,11 +88,11 @@ class ReceiverEngine(QThread):
 
             if payload.get('type') == 'REPORT':
                 packets = payload.get('packets', [])
-                log.info(f"Received report with {len(packets)} packets")
+                log.debug(f"Received report with {len(packets)} packets")
                 self.reportReceived.emit(packets)
 
             elif payload.get('status') == 'LISTENING':
-                log.info("Remote Device confirmed: Listening started")
+                log.debug("Remote Device confirmed: Listening started")
 
         except json.JSONDecodeError:
             log.warning(f"Received invalid JSON data: {data[:50]}...")
@@ -117,7 +116,7 @@ class ReceiverEngine(QThread):
         try:
             data = json.dumps(payload).encode('utf-8')
             self._active_conn.sendall(data)
-            log.info(f"Sent command: {cmd_type}")
+            log.debug(f"Sent command: {cmd_type}")
         except Exception as e:
             log.error(f"Failed to send command: {e}")
 
