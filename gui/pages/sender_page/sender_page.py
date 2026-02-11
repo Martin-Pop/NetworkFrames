@@ -98,16 +98,23 @@ class SenderPage(QWidget):
     def set_frame_info(self, frame_desc):
         self.frame_label.setText(f"Frame: {frame_desc}")
         self.stats_panel.update_count(0)
-        self.stats_panel.set_status("Ready", "gray")
+        self.stats_panel.set_status("Ready", "green")
 
     def set_running_state(self, is_running):
         self.btns_panel.set_running_state(is_running)
         self.conf_panel.set_locked(is_running)
 
         if is_running:
-            self.stats_panel.set_status("Sending...", "@PRIMARY")
+            self.stats_panel.set_status("Sending...", "green")
         else:
-            self.stats_panel.set_status("Stopped / Finished", "green")
+            self.stats_panel.set_status("Stopped / Finished", "orange")
+
+    def set_pause_state(self, is_paused):
+        self.btns_panel.set_pause_state(is_paused)
+        if is_paused:
+            self.stats_panel.set_status("Paused", "orange")
+        else:
+            self.stats_panel.set_status("Sending...", "green")
 
     def show_error(self, message):
         self.stats_panel.set_status(message, "red")

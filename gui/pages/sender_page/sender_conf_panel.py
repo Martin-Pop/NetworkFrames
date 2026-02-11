@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (
     QVBoxLayout, QFormLayout, QComboBox,
-    QSpinBox, QDoubleSpinBox, QLabel, QFrame
+    QSpinBox, QDoubleSpinBox, QLabel, QFrame, QCheckBox
 )
 from PySide6.QtCore import Signal, Qt
 
@@ -49,6 +49,12 @@ class SenderConfPanel(QFrame):
         self.interval_spin.setValue(0.10)
         self.interval_spin.setSuffix(" sec")
         self.form_layout.addRow("Interval:", self.interval_spin)
+
+        # try use receiver
+        self.use_receiver = QCheckBox()
+        self.use_receiver.setChecked(False)
+        self.use_receiver.setEnabled(False)
+        self.form_layout.addRow("Use Receiver:", self.use_receiver)
 
         layout.addLayout(self.form_layout)
         layout.addStretch()

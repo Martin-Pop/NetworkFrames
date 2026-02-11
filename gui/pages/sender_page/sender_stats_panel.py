@@ -1,5 +1,5 @@
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QVBoxLayout, QLabel, QFrame
+from PySide6.QtWidgets import QVBoxLayout, QLabel, QFrame, QFormLayout
 
 
 class SenderStatsPanel(QFrame):
@@ -17,21 +17,34 @@ class SenderStatsPanel(QFrame):
         header.setObjectName('header_label')
         layout.addWidget(header)
 
+        self.stats_form = QFormLayout()
+        self.stats_form.setVerticalSpacing(5)
+        self.stats_form.setLabelAlignment(Qt.AlignmentFlag.AlignLeft)
+
+        # status
+        self.val_status = QLabel()
+        self.set_status('No frame selected', 'red')
+        self.stats_form.addRow("Sender status:", self.val_status)
+
         # counter
-        self.lbl_counter = QLabel("0")
-        self.lbl_counter.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        self.val_counter = QLabel("0")
+        self.stats_form.addRow("Packets Sent:", self.val_counter)
 
-        layout.addWidget(self.lbl_counter)
+        # receiver
+        self.val_receiver = QLabel("Not Configured")
+        self.stats_form.addRow("Remote Receiver:", self.val_receiver)
 
-        # status text
-        self.lbl_status = QLabel("Ready")
-        layout.addWidget(self.lbl_status)
+        layout.addLayout(self.stats_form)
 
         layout.addStretch()
 
     def update_count(self, count):
-        self.lbl_counter.setText(str(count))
+        self.val_counter.setText(str(count))
 
     def set_status(self, text, color="gray"):
-        self.lbl_status.setText(text)
-        self.lbl_status.setStyleSheet(f"font-size: 12px; color: {color}; font-weight: bold;")
+        self.val_status.setText(text)
+        self.val_status.setStyleSheet(f"color: {color}; font-weight: bold;")
+
+    def set_receiver_status(self, text, color="gray"):
+        self.val_receiver.setText(text)
+        self.val_receiver.setStyleSheet(f"color: {color};")

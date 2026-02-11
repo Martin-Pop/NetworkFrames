@@ -57,3 +57,9 @@ class SenderButtonsPanel(QFrame):
         if not is_running:
             self.btn_pause.setChecked(False)
             self.btn_pause.setText("Pause")
+
+    def set_pause_state(self, is_paused):
+        if is_paused:
+            self.btn_pause.setText("Resume")
+        else:
+            self.btn_pause.setText("Pause")

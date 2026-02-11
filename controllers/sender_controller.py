@@ -19,7 +19,8 @@ class SenderController(QObject):
         # signals
         self._sender_page.startClicked.connect(self._start_sending)
         self._sender_page.stopClicked.connect(self._stop_sending)
-        # self._sender_page.exitActivated.connect(self._close_sender)
+        self._sender_page.backClicked.connect(self._close_sender)
+        self._sender_page.pauseClicked.connect(self._toggle_sending)
 
         self._sender_page.set_interfaces(get_interfaces())
 
@@ -83,6 +84,11 @@ class SenderController(QObject):
     def _stop_sending(self):
         if self._worker and self._worker.isRunning():
             self._worker.stop()
+
+    def _toggle_sending(self):
+        if self._worker:
+            is_paused = self._worker.toggle_pause()
+            self._sender_page.set_pause_state(is_paused)
 
     def _on_sending_finished(self):
         self._sender_page.set_running_state(False)
