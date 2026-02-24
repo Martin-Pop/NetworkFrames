@@ -1,7 +1,6 @@
 import scapy.all as scapy_all
 from scapy.layers.inet import IP, DestIPField
 from scapy.layers.inet6 import IPv6
-from scapy.fields import RawVal
 from PySide6.QtCore import QObject, Signal
 
 import logging

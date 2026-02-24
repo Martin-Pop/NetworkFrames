@@ -504,6 +504,9 @@ QTextEdit#hexdump_text_edit {
     font-size: 16px;
 }
 
+/* =================================================================================
+   EDITOR FIELDS
+   ================================================================================= */
 QLineEdit#hexDisplay {
     color: @SECONDARY;
     font-family: "Consolas", "Courier New", monospace;
@@ -526,4 +529,29 @@ QLineEdit#binDisplay {
 QLineEdit#hexDisplay::selection, QLineEdit#binDisplay::selection {
     background-color: #bdc3c7;
     color: #000000;
+}
+
+QPushButton#packetListAddBtn {
+    padding: 4px;
+    font-weight: bold;
+}
+
+QGroupBox#packetListGroupBox {
+    border: 1px solid @SECONDARY;
+    border-radius: 4px;
+    margin-top: 1ex;
+}
+
+QGroupBox#packetListGroupBox::title {
+    subcontrol-origin: margin;
+    left: 10px;
+    padding: 0 3px;
+    color: @SECONDARY;
+    font-size: 11px;
+}
+
+QPushButton#packetListRemoveBtn {
+    color: #d9534f;
+    border: 1px solid #d9534f;
+    padding: 2px;
 }

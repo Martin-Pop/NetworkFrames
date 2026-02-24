@@ -4,6 +4,7 @@ from PySide6.QtWidgets import (
     QStackedWidget, QLabel
 )
 from PySide6.QtCore import Signal, Qt
+from PySide6.QtWidgets import QSizePolicy
 from gui.pages.editor_page.field_editors.factory import FieldRowFactory
 from gui.pages.editor_page.field_editors.base_row import BaseFieldRow
 import logging
@@ -92,6 +93,10 @@ class FieldEditorWidget(QWidget):
 
             form_layout.addRow(field_widget)
 
+        spacer_widget = QWidget()
+        spacer_widget.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
+        form_layout.addRow(spacer_widget)
+
         scroll_area.setWidget(content_widget)
         self.stack.addWidget(scroll_area)
         self.pages[cls_name] = scroll_area
@@ -147,13 +152,10 @@ class FieldEditorWidget(QWidget):
                 item = layout.itemAt(i)
                 widget = item.widget()
 
-                if widget and isinstance(widget, QWidget):
-                    scapy_row = widget.findChild(BaseFieldRow)
-
-                    if scapy_row:
-                        field_name = scapy_row.field_desc.name
-                        value = scapy_row.get_value()
-                        layer_data["fields"][field_name] = value
+                if isinstance(widget, BaseFieldRow):
+                    field_name = widget.field_desc.name
+                    value = widget.get_value()
+                    layer_data["fields"][field_name] = value
 
             collected_layers.append(layer_data)
 
