@@ -503,3 +503,27 @@ QTextEdit#hexdump_text_edit {
 
     font-size: 16px;
 }
+
+QLineEdit#hexDisplay {
+    color: @SECONDARY;
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 13px;
+    font-weight: 600;
+    background-color: transparent;
+    border: none;
+    padding: 2px 4px;
+}
+
+QLineEdit#binDisplay {
+    color: #7f8c8d;
+    font-family: "Consolas", "Courier New", monospace;
+    font-size: 12px;
+    background-color: transparent;
+    border: none;
+    padding: 2px 4px;
+}
+
+QLineEdit#hexDisplay::selection, QLineEdit#binDisplay::selection {
+    background-color: #bdc3c7;
+    color: #000000;
+}
