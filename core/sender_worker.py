@@ -3,31 +3,95 @@ import time
 from scapy.all import sendp
 import logging
 
+from core.remote_client import RemoteClient
+
 log = logging.getLogger(__name__)
 
 class SenderWorker(QThread):
     packetSent = Signal(int)
     finished = Signal()
     errorOccurred = Signal(str)
+    remoteReportReceived = Signal(list)
 
-    def __init__(self, scapy_packets, interface, count=1, interval=0.1):
+    def __init__(self, scapy_packets, interface, count=1, interval=0.1, remote_config=None):
         super().__init__()
         self.original_packets = scapy_packets
         self.iface = interface
         self.count = count
         self.interval = interval
 
+        self.remote_config = remote_config
+        self.remote_client = None
+
         self._is_running = True
         self._is_paused = False
         self._mutex = QMutex()
         self._wait_condition = QWaitCondition()
 
+    def _generate_strict_bpf_filter(self):
+        filter_parts = set()
+
+        iface_str = str(self.iface).lower()
+        is_loopback = "loopback" in iface_str or "lo" == iface_str or "127.0.0.1" in iface_str
+
+        for pkt in self.original_packets:
+            pkt_filters = []
+
+            if pkt.haslayer('Ether') and not is_loopback:
+                if pkt['Ether'].src: pkt_filters.append(f"ether src {pkt['Ether'].src}")
+                if pkt['Ether'].dst and pkt['Ether'].dst != "ff:ff:ff:ff:ff:ff":
+                    pkt_filters.append(f"ether dst {pkt['Ether'].dst}")
+
+            if pkt.haslayer('IP'):
+                if pkt['IP'].src: pkt_filters.append(f"src host {pkt['IP'].src}")
+                if pkt['IP'].dst: pkt_filters.append(f"dst host {pkt['IP'].dst}")
+            elif pkt.haslayer('IPv6'):
+                if pkt['IPv6'].src: pkt_filters.append(f"src host {pkt['IPv6'].src}")
+                if pkt['IPv6'].dst: pkt_filters.append(f"dst host {pkt['IPv6'].dst}")
+
+            if pkt.haslayer('TCP'):
+                if pkt['TCP'].sport: pkt_filters.append(f"tcp src port {pkt['TCP'].sport}")
+                if pkt['TCP'].dport: pkt_filters.append(f"tcp dst port {pkt['TCP'].dport}")
+            elif pkt.haslayer('UDP'):
+                if pkt['UDP'].sport: pkt_filters.append(f"udp src port {pkt['UDP'].sport}")
+                if pkt['UDP'].dport: pkt_filters.append(f"udp dst port {pkt['UDP'].dport}")
+            elif pkt.haslayer('ICMP'):
+                pkt_filters.append("icmp")
+
+            if pkt_filters:
+                filter_parts.add("(" + " and ".join(pkt_filters) + ")")
+
+        if not filter_parts:
+            return ""
+
+        bpf_filter = " or ".join(filter_parts)
+        log.debug(f"Generated STRICT BPF filter for Receiver: {bpf_filter}")
+        return bpf_filter
+
     def run(self):
         sent_count = 0
-        try:
 
+        try:
             if not self.original_packets:
                 raise Exception("Frames are empty")
+
+            if self.remote_config:
+                auto_filter = self._generate_strict_bpf_filter()
+                self.remote_client = RemoteClient()
+                ip = self.remote_config.get("remote_ip")
+                port = self.remote_config.get("remote_port")
+
+                log.debug(f"Connecting to remote receiver {ip}:{port} with filter [{auto_filter}]")
+                if self.remote_client.connect_to_host(ip, port):
+                    started = self.remote_client.send_start_command(auto_filter)
+
+                    if not started:
+                        self.errorOccurred.emit("Remote receiver refused START command. Aborting.")
+                        self.remote_client.disconnect_from_host()
+                        return
+                else:
+                    self.errorOccurred.emit("Could not connect to remote receiver. Aborting.")
+                    return
 
             while self._is_running:
                 if self.count != -1 and sent_count >= self.count:
@@ -57,6 +121,15 @@ class SenderWorker(QThread):
         except Exception as e:
             self.errorOccurred.emit(str(e))
         finally:
+            if self.remote_client and self.remote_client.is_connected:
+                log.debug("Sending STOP to remote receiver")
+                report = self.remote_client.send_stop_command()
+
+                if report is not None:
+                    self.remoteReportReceived.emit(report)
+
+                self.remote_client.disconnect_from_host()
+
             log.debug('sender finished, emitting signal now')
             self.finished.emit()
 
@@ -70,6 +143,13 @@ class SenderWorker(QThread):
     def toggle_pause(self):
         self._mutex.lock()
         self._is_paused = not self._is_paused
+
+        if self.remote_client and self.remote_client.is_connected:
+            if self._is_paused:
+                self.remote_client.send_pause_command()
+            else:
+                self.remote_client.send_resume_command()
+
         if not self._is_paused:
             self._wait_condition.wakeAll()
         self._mutex.unlock()

@@ -1,14 +1,14 @@
-from PySide6.QtCore import QObject, Slot, Signal
+from PySide6.QtCore import QObject, Signal
 from core.input_output.interfaces import get_interfaces
 from core.receiver_engine import ReceiverEngine
-from core.remote_client import RemoteClient, ConnectionWorker
+from core.remote_client import RemoteClient
 import logging
 
 log = logging.getLogger(__name__)
 
 
 class ReceiverController(QObject):
-    remoteConnectionChanged = Signal(bool, str, int)
+    remoteConfigChanged = Signal(dict)
 
     def __init__(self, main_controller):
         super().__init__()
@@ -33,9 +33,7 @@ class ReceiverController(QObject):
         self._receiver_page.saveRequested.connect(self._on_save_pcap_requested)
 
         self._receiver_page.pingRequested.connect(self._on_ping_requested)
-        # self._receiver_page.remoteConfigChanged.connect(self._on_remote_config_changed)
-
-        # self._remote_client.connectionLost.connect(self._on_connection_lost)
+        self._receiver_page.remoteConfigChanged.connect(self.remoteConfigChanged)
 
     def _init_data(self):
         try:
@@ -63,13 +61,12 @@ class ReceiverController(QObject):
 
         self._client_count = 0
         log.debug(f"Starting ReceiverEngine on {bind_ip}:{local_port}")
-        self._engine = ReceiverEngine(port=local_port, iface_ip=bind_ip)
+        self._engine = ReceiverEngine(port=local_port, iface_ip=bind_ip, iface_name=local_iface_name)
 
         self._engine.serverStarted.connect(self._on_server_started)
         self._engine.serverStopped.connect(self._on_server_stopped)
         self._engine.clientConnected.connect(self._on_client_connected)
         self._engine.clientDisconnected.connect(self._on_client_disconnected)
-        self._engine.dataReceived.connect(self._on_data_received)
         self._engine.errorOccurred.connect(self._on_engine_error)
 
         self._engine.start()
@@ -101,13 +98,6 @@ class ReceiverController(QObject):
     def _on_engine_error(self, error_msg):
         log.error(f"Engine Error: {error_msg}")
         self._receiver_page.set_listener_status(False, 0)
-
-    def _on_data_received(self, data):
-        try:
-            msg = data.decode('utf-8', errors='replace')
-            log.debug(f"Received {msg}")
-        except Exception as e:
-            log.error(f"Error processing data: {e}")
 
     def _on_ping_requested(self, ip, port):
         success = self._remote_client.ping_host(ip, port)

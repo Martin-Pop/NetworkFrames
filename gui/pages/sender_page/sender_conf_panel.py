@@ -10,6 +10,7 @@ class SenderConfPanel(QFrame):
     Left side: Interface selection, Count, Interval.
     """
     interfaceChanged = Signal(str)  # Emits interface internal name
+    useReceiverToggled = Signal(bool)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -53,7 +54,8 @@ class SenderConfPanel(QFrame):
         # try use receiver
         self.use_receiver = QCheckBox()
         self.use_receiver.setChecked(False)
-        self.use_receiver.setEnabled(False)
+        self.use_receiver.setEnabled(True)
+        self.use_receiver.toggled.connect(self.useReceiverToggled.emit)
         self.form_layout.addRow("Use Receiver:", self.use_receiver)
 
         layout.addLayout(self.form_layout)
@@ -85,7 +87,8 @@ class SenderConfPanel(QFrame):
         return {
             "interface": self.interface_combo.currentData(),
             "count": self.count_spin.value(),
-            "interval": self.interval_spin.value()
+            "interval": self.interval_spin.value(),
+            "use_receiver": self.use_receiver.isChecked()
         }
 
     def set_locked(self, locked):

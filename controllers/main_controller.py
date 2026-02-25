@@ -47,6 +47,7 @@ class MainController(QObject):
         # receiver
         self._receiver_controller = ReceiverController(self)
         self._receiver_controller.set_view(self._window.receiver_page)
+        self._receiver_controller.remoteConfigChanged.connect(self._on_remote_config_changed)
 
     def _on_editor_open(self, _id):
         """
@@ -88,3 +89,6 @@ class MainController(QObject):
     def _on_fuzzing_finished(self, ids, group_name):
         self._frame_page_controller.add_fuzzed_batch(ids, group_name)
         self._switch_to_frames_page()
+
+    def _on_remote_config_changed(self, config):
+        self._sender_controller.update_remote_config_status(config)

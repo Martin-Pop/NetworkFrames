@@ -16,6 +16,7 @@ class SenderController(QObject):
         self._worker = None
         self._identification = ''
         self._current_frame_ids = []
+        self._current_receiver_config = {"remote_ip": '127.0.0.1', "remote_port": 5000}
 
         # signals
         self._sender_page.startClicked.connect(self._start_sending)
@@ -63,7 +64,6 @@ class SenderController(QObject):
         for frame_id in self._current_frame_ids:
             frame = self._frame_manager.get_frame(frame_id)
             if not frame or not frame.scapy:
-                # self._sender_page.show_error(f"Invalid frame data - ID: {frame_id}")
                 continue
             scapy_pkts.append(frame.scapy)
 
@@ -72,10 +72,11 @@ class SenderController(QObject):
         iface = config.get("interface")
         count = config.get("count")
         interval = config.get("interval")
+        use_receiver = config.get("use_receiver")
 
         log.debug(f"Starting sender: frame_count={len(scapy_pkts)}, Iface={iface}, Count={count}")
 
-        self._worker = SenderWorker(scapy_pkts, iface, count, interval)
+        self._worker = SenderWorker(scapy_pkts, iface, count, interval, self._current_receiver_config if use_receiver else None)
         self._worker.packetSent.connect(self._sender_page.update_counter)
         self._worker.finished.connect(self._on_sending_finished)
         self._worker.errorOccurred.connect(self._on_worker_error)
@@ -114,3 +115,7 @@ class SenderController(QObject):
         if not set(ids).isdisjoint(self._current_frame_ids):
             new_ids = list(set(self._current_frame_ids) - set(ids))
             self.load_frames(new_ids, self._identification)
+
+    def update_remote_config_status(self, config):
+        self._current_receiver_config = config
+        self._sender_page.update_receiver_status(config)

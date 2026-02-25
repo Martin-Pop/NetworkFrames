@@ -45,12 +45,10 @@ class RemoteClient(QObject):
             temp_sock.connect((ip, port))
             temp_sock.close()
             return True
-        except Exception as e:
+        except Exception:
             if temp_sock:
-                try:
-                    temp_sock.close()
-                except:
-                    pass
+                try: temp_sock.close()
+                except: pass
             return False
 
     def connect_to_host(self, ip, port):
@@ -61,7 +59,7 @@ class RemoteClient(QObject):
 
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.sock.settimeout(5.0)  # Standard timeout
+            self.sock.settimeout(5.0)
             self.sock.connect((ip, port))
 
             self.is_connected = True
@@ -78,10 +76,8 @@ class RemoteClient(QObject):
         :param emit_signal: If True, emits connectionLost signal.
         """
         if self.sock:
-            try:
-                self.sock.close()
-            except Exception:
-                pass
+            try: self.sock.close()
+            except Exception: pass
 
         self.sock = None
         was_connected = self.is_connected
@@ -91,34 +87,14 @@ class RemoteClient(QObject):
             log.debug('Connection lost signal emitted')
             self.connectionLost.emit()
 
-    def send_start_command(self, filter_str="", count=1, interval=0.1):
-        """
-        Sends START command with capture details.
-        Calculates timeout for the receiver based on count * interval.
-        """
+    def send_start_command(self, filter_str=""):
         if not self.sock or not self.is_connected:
             return False
 
-        # Calculate how long the capture will theoretically take
-        # We add a 5-second buffer for network latency/processing
-        estimated_duration = 0
-        if count > 0:
-            estimated_duration = (count * interval) + 5.0
-        else:
-            # If count is infinite or 0, set a very long timeout (e.g., 1 hour)
-            estimated_duration = 3600.0
-
         try:
-            cmd = {
-                "cmd": "START",
-                "filter": filter_str,
-                "count": count,
-                "interval": interval,
-                "timeout": estimated_duration
-            }
+            cmd = {"cmd": "START", "filter": filter_str}
             self._send_json(cmd)
 
-            # Wait for confirmation (LISTENING)
             self.sock.settimeout(5.0)
             resp = self._recv_json()
 
@@ -128,9 +104,16 @@ class RemoteClient(QObject):
 
         except Exception as e:
             log.error(f"Error sending START: {e}")
-            # Connection died, notify controller
             self.disconnect_from_host(emit_signal=True)
             return False
+
+    def send_pause_command(self):
+        if self.sock and self.is_connected:
+            self._send_json({"cmd": "PAUSE"})
+
+    def send_resume_command(self):
+        if self.sock and self.is_connected:
+            self._send_json({"cmd": "RESUME"})
 
     def send_stop_command(self):
         """
@@ -143,25 +126,18 @@ class RemoteClient(QObject):
             cmd = {"cmd": "STOP"}
             self._send_json(cmd)
 
-            # Increase timeout for large data transfer
             self.sock.settimeout(15.0)
-
-            # Read potentially large data (report)
             raw_data = b""
             while True:
                 try:
                     chunk = self.sock.recv(4096)
-                    if not chunk:
-                        break
+                    if not chunk: break
                     raw_data += chunk
-
-                    # Basic check if JSON is likely complete
                     if raw_data.strip().endswith(b"}"):
-                        # Try to parse to confirm it's complete
                         json.loads(raw_data)
                         break
                 except json.JSONDecodeError:
-                    continue  # Not complete yet, keep reading
+                    continue
                 except socket.timeout:
                     log.warning("Socket timed out while reading report")
                     break
@@ -169,9 +145,7 @@ class RemoteClient(QObject):
                     log.error(f"Error reading chunk: {e}")
                     break
 
-            if not raw_data:
-                return []
-
+            if not raw_data: return []
             data = json.loads(raw_data.decode('utf-8'))
             if data.get("type") == "REPORT":
                 return data.get("packets", [])
@@ -191,7 +165,5 @@ class RemoteClient(QObject):
             data = self.sock.recv(4096)
             if not data: return None
             return json.loads(data.decode('utf-8'))
-        except socket.timeout:
-            return None
         except Exception:
             return None

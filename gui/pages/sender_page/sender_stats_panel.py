@@ -31,7 +31,7 @@ class SenderStatsPanel(QFrame):
         self.stats_form.addRow("Packets Sent:", self.val_counter)
 
         # receiver
-        self.val_receiver = QLabel("Not Configured")
+        self.val_receiver = QLabel("127.0.0.1  5000")
         self.stats_form.addRow("Remote Receiver:", self.val_receiver)
 
         layout.addLayout(self.stats_form)

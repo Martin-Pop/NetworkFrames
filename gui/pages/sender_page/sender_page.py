@@ -129,3 +129,6 @@ class SenderPage(QWidget):
     def get_config(self):
         cfg = self.conf_panel.get_settings()
         return cfg
+
+    def update_receiver_status(self, config):
+        self.stats_panel.set_receiver_status(f"{config['remote_ip']}  {config['remote_port']}")
