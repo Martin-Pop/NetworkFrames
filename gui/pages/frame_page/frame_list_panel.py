@@ -1,21 +1,22 @@
 import logging
+import uuid
 
 from PySide6.QtWidgets import (
     QTreeWidget, QTreeWidgetItem, QAbstractItemView,
     QHeaderView, QMenu, QFrame, QInputDialog
 )
-from PySide6.QtGui import QAction, QColor, QBrush
+from PySide6.QtGui import QColor, QBrush
 from PySide6.QtCore import Qt, Signal, QPoint
 
 from core.input_output.files import get_file, save_file
 from gui.pages.frame_page.hexdump_window import HexDumpWindow
 
-import uuid
-
 # ROLES
 ROLE_ID = Qt.ItemDataRole.UserRole + 1
 ROLE_IS_GROUP = Qt.ItemDataRole.UserRole + 2
 ROLE_FRAME = Qt.ItemDataRole.UserRole + 3
+
+log = logging.getLogger(__name__)
 
 
 class FrameListPanel(QTreeWidget):
@@ -25,7 +26,7 @@ class FrameListPanel(QTreeWidget):
 
     frameSelected = Signal(int)
     framesDeleted = Signal(list)
-    framesSaved = Signal(str, list) # path and list of ids
+    framesSaved = Signal(str, list)  # path and list of ids
     addNewFrame = Signal(str, str)  # path or empty string, uuid (group id) or empty string
     sendRequest = Signal(list, str)
     openFuzzingRequest = Signal(int)
@@ -37,7 +38,6 @@ class FrameListPanel(QTreeWidget):
 
         self.item_map = {}  # frame_id : QTreeWidgetItem
         self.group_map = {}
-        self._context_menu_options = {}
 
         columns = ["ID/GROUP", "Source", "Destination", "Protocol", "Length", "Info"]
         self.setColumnCount(len(columns))
@@ -90,7 +90,6 @@ class FrameListPanel(QTreeWidget):
         else:
             self.addTopLevelItem(item)
 
-        # update
         self._update_decoration_state()
 
     def add_frames(self, frame_list, group_id):
@@ -144,7 +143,6 @@ class FrameListPanel(QTreeWidget):
         group_item.setData(0, ROLE_ID, virtual_id)
 
         self.group_map[virtual_id] = group_item
-
         self.addTopLevelItem(group_item)
 
         return group_item
@@ -203,118 +201,54 @@ class FrameListPanel(QTreeWidget):
         selected_items = self.selectedItems()
         menu = QMenu()
 
-        # no selection (Root level)
         if not selected_items:
-            add_new = QAction('Add New')
-            add_new.triggered.connect(lambda: self.addNewFrame.emit('', ''))
+            menu.addAction('Add New', lambda: self.addNewFrame.emit('', ''))
+            menu.addAction('Load from PCAP', self._load_pcap)
+            menu.addAction('Load from PCAP as new group', self._load_pcap_as_group)
+            menu.addAction('Create Group', self._create_empty_group)
+            menu.exec(self.mapToGlobal(position))
+            return
 
-            load_pcap = QAction('Load from PCAP')
-            load_pcap.triggered.connect(lambda: self._load_pcap())
+        count = len(selected_items)
+        contains_group = any(item.data(0, ROLE_IS_GROUP) for item in selected_items)
+        all_groups = all(item.data(0, ROLE_IS_GROUP) for item in selected_items)
 
-            load_pcap_as_group = QAction('Load from PCAP as new group')
-            load_pcap_as_group.triggered.connect(self._load_pcap_as_group)
+        single_group = (count == 1 and all_groups)
+        single_frame = (count == 1 and not contains_group)
 
-            create_group = QAction('Create Group')
-            create_group.triggered.connect(lambda: self._create_empty_group())
+        # menu for single group
+        if single_group:
+            current_id = selected_items[0].data(0, ROLE_ID)
+            menu.addAction('Add New Packet Here', lambda: self.addNewFrame.emit('', current_id))
+            menu.addAction('Load PCAP to group', lambda: self._load_pcap(current_id))
+            menu.addSeparator()
 
-            menu.addAction(add_new)
-            menu.addAction(load_pcap)
-            menu.addAction(load_pcap_as_group)
-            menu.addAction(create_group)
+        # menu for everything
+        menu.addAction("To Sender", lambda: self._send_selection(selected_items))
+        menu.addAction("Save as PCAP...", lambda: self._save_selection(selected_items))
 
-        else:
-            count = len(selected_items)
+        # menu for single frame
+        if single_frame:
+            menu.addSeparator()
             item = selected_items[0]
-            is_group = item.data(0, ROLE_IS_GROUP) is True
             current_id = item.data(0, ROLE_ID)
+            menu.addAction("Fuzz", lambda: self.openFuzzingRequest.emit(current_id))
+            menu.addAction("Show Hexdump", lambda: self._open_hexdump_window(item))
 
-            has_group_in_selection = any(i.data(0, ROLE_IS_GROUP) is True for i in selected_items)# checks if any selected item is a group
+        # grouping
+        menu.addSeparator()
+        if count > 1 and not contains_group:
+            menu.addAction(f"Group ({count}) items", lambda: self._create_group_from_selection(selected_items))
 
-            # single group selected
-            if count == 1 and is_group:
-                # add new to group
-                add_new = QAction('Add New Packet Here')
-                add_new.triggered.connect(lambda: self.addNewFrame.emit('', current_id))
-                menu.addAction(add_new)
+        if single_group:
+            menu.addAction("Ungroup", lambda: self._ungroup(selected_items[0]))
 
-                to_sender = QAction("To Sender")
-                to_sender.triggered.connect(lambda: self._send_group(item))
-                menu.addAction(to_sender)
-
-                menu.addSeparator()
-
-                # save group
-                save_grp = QAction("Save Group as PCAP...")
-                save_grp.triggered.connect(lambda: self._save_group(item))
-                menu.addAction(save_grp)
-
-                # load pcap to group
-                load_here = QAction('Load PCAP to group')
-                load_here.triggered.connect(lambda: self._load_pcap(current_id))
-                menu.addAction(load_here)
-
-                menu.addSeparator()
-
-                # ungroup
-                ungroup = QAction("Ungroup")
-                ungroup.triggered.connect(lambda: self._ungroup(item))
-                menu.addAction(ungroup)
-
-                # delete
-                del_grp = QAction("Delete Group")
-                del_grp.triggered.connect(lambda: self._delete_group(item))
-                menu.addAction(del_grp)
-
-            # selection or mixed selection
-            else:
-                to_sender = QAction("To Sender")
-                to_sender.triggered.connect(lambda: self._send_mixed_selection(selected_items))
-                menu.addAction(to_sender)
-
-                # fuzzing only for single selection
-                if count == 1 and not is_group:
-                    fuzz_act = QAction("Fuzz")
-                    fuzz_act.triggered.connect(lambda: self.openFuzzingRequest.emit(current_id))
-                    menu.addAction(fuzz_act)
-
-                    menu.addSeparator()
-                    hex_act = QAction("Show Hexdump")
-                    hex_act.triggered.connect(lambda: self._open_hexdump_window(item))
-                    menu.addAction(hex_act)
-
-                menu.addSeparator()
-
-                # group selection, only if there are no groups in selection
-                if count > 1 and not has_group_in_selection:
-                    create_grp = QAction(f"Group ({count}) items")
-                    create_grp.triggered.connect(lambda: self._create_group_from_selection(selected_items))
-                    menu.addAction(create_grp)
-                    menu.addSeparator()
-
-                    # save
-                    save_grp = QAction("Save selection as PCAP")
-                    save_grp.triggered.connect(lambda: self._save_selection(selected_items))
-                    menu.addAction(save_grp)
-
-                # delete
-                del_text = "Delete" if count == 1 else f"Delete Selected ({count})"
-                delete_action = QAction(del_text)
-                delete_action.triggered.connect(self._delete_selection)
-                menu.addAction(delete_action)
+        # deleting
+        menu.addSeparator()
+        del_text = "Delete" if count == 1 else f"Delete Selected ({count})"
+        menu.addAction(del_text, self._delete_selection)
 
         menu.exec(self.mapToGlobal(position))
-
-    def _save_group(self, group_item):
-        """
-        Saves whole group as PCAP
-        :param group_item: group item (widget)
-        """
-        path = save_file(self, "Packet Capture (*.pcap)")
-        if path:
-            ids = []
-            for i in range(group_item.childCount()):
-                ids.append(group_item.child(i).data(0, ROLE_ID))
-            self.framesSaved.emit(path, ids)
 
     def _save_selection(self, selected_items):
         """
@@ -322,67 +256,73 @@ class FrameListPanel(QTreeWidget):
         :param selected_items: selected items
         """
         path = save_file(self, "Packet Capture (*.pcap)")
-        if path:
-            ids = []
-            for item in selected_items:
-                ids.append(item.data(0, ROLE_ID))
-            self.framesSaved.emit(path, ids)
+        if not path:
+            return
 
-    def _send_mixed_selection(self, selected_items):
+        ids = self._get_unique_ids_from_selection(selected_items)
+        self.framesSaved.emit(path, ids)
+
+    def _send_selection(self, selected_items):
         """
-        Sends selected items. If an item is a group, sends its children.
+        Sends selection to sender
         :param selected_items: selected items
         """
-        ids = []
+        ids = self._get_unique_ids_from_selection(selected_items)
+
         group_name = ''
+        if len(selected_items) == 1 and selected_items[0].data(0, ROLE_IS_GROUP):
+            group_name = selected_items[0].text(0)
+
+        self.sendRequest.emit(ids, group_name)
+
+    def _get_unique_ids_from_selection(self, selected_items):
+        """
+        Helper function for getting unique ids from selection
+        :param selected_items: selected items
+        :return: list of unique ids
+        """
+        ids = []
         for item in selected_items:
             if item.data(0, ROLE_IS_GROUP):
-                group_name = item.text(0)
                 for i in range(item.childCount()):
                     ids.append(item.child(i).data(0, ROLE_ID))
             else:
                 ids.append(item.data(0, ROLE_ID))
 
-        self.sendRequest.emit(ids, group_name)
-
-    def _send_group(self, group_item):
-        ids = []
-        group_name = group_item.text(0)
-        for i in range(group_item.childCount()):
-            child = group_item.child(i)
-            ids.append(child.data(0, ROLE_ID))
-
-        self.sendRequest.emit(ids, group_name)
+        seen = set()
+        unique_ids = [x for x in ids if not (x in seen or seen.add(x))]
+        return unique_ids
 
     def _create_empty_group(self):
+        """
+        Creates empty group
+        """
         group_item = self._create_group()
-        if not group_item:
-            return
-
-        self._update_decoration_state()
+        if group_item:
+            self._update_decoration_state()
 
     def _create_group_from_selection(self, selected_items):
         """
-        Creates group from selected items.
-        :param selected_items: selected items to grop
+        Creates group from selection
+        :param selected_items: selected items
         """
-        # Double check to prevent nested groups
-        for item in selected_items:
-            if item.data(0, ROLE_IS_GROUP):
-                return
+        if any(item.data(0, ROLE_IS_GROUP) for item in selected_items):
+            return
 
         group_item = self._create_group()
         if not group_item:
             return
 
-        selected_items.sort(key=lambda x: self.indexOfTopLevelItem(x))
-
-        # move into groups
         for item in selected_items:
-            index = self.indexOfTopLevelItem(item)
-            if index == -1: continue  # should not happen if logic is correct
+            parent = item.parent()
+            # gets removed from old group
+            if parent:
+                parent.removeChild(item)
+            else:
+                idx = self.indexOfTopLevelItem(item)
+                if idx != -1:
+                    self.takeTopLevelItem(idx)
 
-            self.takeTopLevelItem(index)
             group_item.addChild(item)
 
         group_item.setExpanded(True)
@@ -395,8 +335,8 @@ class FrameListPanel(QTreeWidget):
         :return:
         """
         children = [group_item.child(i) for i in range(group_item.childCount())]
-
         group_index = self.indexOfTopLevelItem(group_item)
+
         for i, child in enumerate(children):
             group_item.removeChild(child)
             self.insertTopLevelItem(group_index + i, child)
@@ -408,24 +348,6 @@ class FrameListPanel(QTreeWidget):
         self.takeTopLevelItem(self.indexOfTopLevelItem(group_item))
         self._update_decoration_state()
 
-    def _delete_group(self, group_item):
-        """
-        Deletes group, emits signal for frame deletion (group children)
-        :param group_item: group item (widget)
-        """
-        ids_to_delete = []
-        for i in range(group_item.childCount()):
-            child = group_item.child(i)
-            ids_to_delete.append(child.data(0, ROLE_ID))
-
-        virtual_id = group_item.data(0, ROLE_ID)
-        if virtual_id in self.group_map:
-            del self.group_map[virtual_id]
-
-        # remove visual group
-        idx = self.indexOfTopLevelItem(group_item)
-        self.takeTopLevelItem(idx)
-
     def _delete_selection(self):
         """
         Deletes selection
@@ -433,43 +355,41 @@ class FrameListPanel(QTreeWidget):
         items = self.selectedItems()
         if not items: return
 
-        ids_to_delete = []
+        ids_to_delete = set()
 
         for item in items:
-            # group
             if item.data(0, ROLE_IS_GROUP):
-                for i in range(item.childCount()):
-                    child = item.child(i)
-                    ids_to_delete.append(child.data(0, ROLE_ID))
-
                 virtual_id = item.data(0, ROLE_ID)
                 if virtual_id in self.group_map:
                     del self.group_map[virtual_id]
 
-                # remove visual group
+                for i in range(item.childCount()):
+                    child = item.child(i)
+                    pkt_id = child.data(0, ROLE_ID)
+                    ids_to_delete.add(pkt_id)
+                    if pkt_id in self.item_map:
+                        del self.item_map[pkt_id]
+
                 idx = self.indexOfTopLevelItem(item)
-                self.takeTopLevelItem(idx)
+                if idx != -1:
+                    self.takeTopLevelItem(idx)
 
-
-            # normal frame
             else:
                 pkt_id = item.data(0, ROLE_ID)
-                ids_to_delete.append(pkt_id)
+                ids_to_delete.add(pkt_id)
+                if pkt_id in self.item_map:
+                    del self.item_map[pkt_id]
 
                 parent = item.parent()
                 if parent:
                     parent.removeChild(item)
-                    # maybe remove empty group?
                 else:
                     idx = self.indexOfTopLevelItem(item)
-                    self.takeTopLevelItem(idx)
-
-                # Clean up map
-                if pkt_id in self.item_map:
-                    del self.item_map[pkt_id]
+                    if idx != -1:
+                        self.takeTopLevelItem(idx)
 
         self._update_decoration_state()
-        self.framesDeleted.emit(ids_to_delete)
+        self.framesDeleted.emit(list(ids_to_delete))
 
     def _on_item_clicked(self, item, _):
         """
@@ -494,7 +414,6 @@ class FrameListPanel(QTreeWidget):
         if file_path:
             self.addNewFrame.emit(file_path, parent_id if parent_id else '')
 
-
     def _load_pcap_as_group(self):
         """
         Loads frames from pcap file as a new group
@@ -506,6 +425,7 @@ class FrameListPanel(QTreeWidget):
         group_id = group_item.data(0, ROLE_ID)
         file_filter = "Packet Capture (*.pcap)"
         file_path = get_file(self, file_filter)
+
         if file_path:
             self.addNewFrame.emit(file_path, group_id)
         else:
