@@ -1,6 +1,7 @@
 import socket
 import logging
 import json
+import time
 from PySide6.QtCore import QThread, Signal
 from scapy.all import AsyncSniffer
 
@@ -17,7 +18,6 @@ class ReceiverEngine(QThread):
     serverStopped = Signal()
     clientConnected = Signal(str, int)
     clientDisconnected = Signal(str, int)
-
     errorOccurred = Signal(str)
 
     def __init__(self, port, iface_ip="0.0.0.0", iface_name=None):
@@ -25,7 +25,6 @@ class ReceiverEngine(QThread):
         self.port = port
         self.iface_ip = iface_ip
         self.iface_name = iface_name
-
         self._is_running = False
         self._server_socket = None
         self._active_conn = None
@@ -68,7 +67,6 @@ class ReceiverEngine(QThread):
 
                     self._active_conn = None
                     self.clientDisconnected.emit(addr[0], addr[1])
-                    log.debug(f"Remote Sender {addr} disconnected")
 
                     if self.sniffer and self.sniffer.running:
                         self.sniffer.stop()
@@ -101,6 +99,8 @@ class ReceiverEngine(QThread):
                 self.sniffer = AsyncSniffer(iface=self.iface_name, filter=filter_str)
                 self.sniffer.start()
 
+                time.sleep(0.5)
+
                 resp = json.dumps({"status": "LISTENING"}).encode('utf-8')
                 conn.sendall(resp)
 
@@ -111,7 +111,6 @@ class ReceiverEngine(QThread):
             elif cmd == "RESUME":
                 log.debug("Received RESUME command.")
                 conn.sendall(json.dumps({"status": "RESUMED"}).encode('utf-8'))
-
 
             elif cmd == "STOP":
                 log.debug("Received STOP command. Stopping sniffer...")

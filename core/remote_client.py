@@ -23,7 +23,6 @@ class ConnectionWorker(QThread):
         success = self.client.connect_to_host(self.ip, self.port)
         self.result.emit(success, self.ip, self.port)
 
-
 class RemoteClient(QObject):
     connectionLost = Signal()
 
@@ -84,7 +83,6 @@ class RemoteClient(QObject):
         self.is_connected = False
 
         if was_connected and emit_signal:
-            log.debug('Connection lost signal emitted')
             self.connectionLost.emit()
 
     def send_start_command(self, filter_str=""):
@@ -94,10 +92,9 @@ class RemoteClient(QObject):
         try:
             cmd = {"cmd": "START", "filter": filter_str}
             self._send_json(cmd)
-
             self.sock.settimeout(5.0)
-            resp = self._recv_json()
 
+            resp = self._recv_json()
             if resp and resp.get("status") == "LISTENING":
                 return True
             return False
@@ -109,11 +106,17 @@ class RemoteClient(QObject):
 
     def send_pause_command(self):
         if self.sock and self.is_connected:
-            self._send_json({"cmd": "PAUSE"})
+            try:
+                self._send_json({"cmd": "PAUSE"})
+            except Exception:
+                pass
 
     def send_resume_command(self):
         if self.sock and self.is_connected:
-            self._send_json({"cmd": "RESUME"})
+            try:
+                self._send_json({"cmd": "RESUME"})
+            except Exception:
+                pass
 
     def send_stop_command(self):
         """
@@ -134,10 +137,11 @@ class RemoteClient(QObject):
                     if not chunk: break
                     raw_data += chunk
                     if raw_data.strip().endswith(b"}"):
-                        json.loads(raw_data)
-                        break
-                except json.JSONDecodeError:
-                    continue
+                        try:
+                            json.loads(raw_data)
+                            break
+                        except json.JSONDecodeError:
+                            pass
                 except socket.timeout:
                     log.warning("Socket timed out while reading report")
                     break
