@@ -19,6 +19,7 @@ class ReceiverEngine(QThread):
     clientConnected = Signal(str, int)
     clientDisconnected = Signal(str, int)
     errorOccurred = Signal(str)
+    localReportReady = Signal(list)
 
     def __init__(self, port, iface_ip="0.0.0.0", iface_name=None):
         super().__init__()
@@ -147,6 +148,8 @@ class ReceiverEngine(QThread):
                     "type": "REPORT",
                     "packets": packet_list
                 }
+
+                # self.localReportReady.emit(packet_list)
 
                 resp = json.dumps(report).encode('utf-8')
                 conn.sendall(resp)

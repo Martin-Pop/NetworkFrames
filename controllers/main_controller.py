@@ -49,6 +49,8 @@ class MainController(QObject):
         self._receiver_controller.set_view(self._window.receiver_page)
         self._receiver_controller.remoteConfigChanged.connect(self._on_remote_config_changed)
 
+        self._sender_controller.remoteReportReceived.connect(self._receiver_controller.handle_incoming_packets)
+
     def _on_editor_open(self, _id):
         """
         Opens editor

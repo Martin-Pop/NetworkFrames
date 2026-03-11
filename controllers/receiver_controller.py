@@ -68,6 +68,7 @@ class ReceiverController(QObject):
         self._engine.clientConnected.connect(self._on_client_connected)
         self._engine.clientDisconnected.connect(self._on_client_disconnected)
         self._engine.errorOccurred.connect(self._on_engine_error)
+        self._engine.localReportReady.connect(self.handle_incoming_packets)
 
         self._engine.start()
 
@@ -114,5 +115,8 @@ class ReceiverController(QObject):
     def _on_save_pcap_requested(self):
         log.info("Export PCAP requested (Not implemented yet)")
 
-    def handle_incoming_packet(self, packet_dict):
-        self._receiver_page.add_packet_to_table(packet_dict)
+    def handle_incoming_packets(self, packets_list):
+        for pkt in packets_list:
+            self._receiver_page.add_packet_to_table(pkt)
+
+        self._receiver_page.show_capture()

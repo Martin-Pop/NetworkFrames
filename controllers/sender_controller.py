@@ -7,6 +7,7 @@ log = logging.getLogger(__name__)
 
 class SenderController(QObject):
     senderClosed = Signal()
+    remoteReportReceived = Signal(list)
 
     def __init__(self, sender_page, frame_manager):
         super().__init__()
@@ -80,6 +81,7 @@ class SenderController(QObject):
         self._worker.packetSent.connect(self._sender_page.update_counter)
         self._worker.finished.connect(self._on_sending_finished)
         self._worker.errorOccurred.connect(self._on_worker_error)
+        self._worker.remoteReportReceived.connect(self.remoteReportReceived.emit)
 
         self._sender_page.set_running_state(True)
         self._worker.start()
