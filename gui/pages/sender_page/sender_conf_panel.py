@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import (
     QVBoxLayout, QFormLayout, QComboBox,
-    QSpinBox, QDoubleSpinBox, QLabel, QFrame, QCheckBox
+    QSpinBox, QDoubleSpinBox, QLabel, QFrame, QCheckBox, QHBoxLayout, QPushButton
 )
 from PySide6.QtCore import Signal, Qt
 
@@ -11,6 +11,7 @@ class SenderConfPanel(QFrame):
     """
     interfaceChanged = Signal(str)  # Emits interface internal name
     useReceiverToggled = Signal(bool)
+    refreshInterfaces = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -32,9 +33,21 @@ class SenderConfPanel(QFrame):
         self.form_layout.setVerticalSpacing(15)
 
         # int
+        int_layout = QHBoxLayout()
         self.interface_combo = QComboBox()
+        self.interface_combo.setFixedHeight(30)
         self.interface_combo.currentIndexChanged.connect(self._on_interface_change)
-        self.form_layout.addRow("Interface:", self.interface_combo)
+
+        self.btn_refresh = QPushButton("↻")
+        self.btn_refresh.setObjectName("btn_refresh")
+        self.btn_refresh.setFixedSize(30, 30)
+        self.btn_refresh.setToolTip("Refresh Network Interfaces")
+        self.btn_refresh.clicked.connect(self.refreshInterfaces.emit)
+
+        int_layout.addWidget(self.interface_combo, 1)
+        int_layout.addWidget(self.btn_refresh, 0)
+
+        self.form_layout.addRow("Interface:", int_layout)
 
         # count
         self.count_spin = QSpinBox()

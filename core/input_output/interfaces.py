@@ -46,14 +46,14 @@ def _get_windows_interfaces():
         win_list = get_windows_if_list()
 
         for iface in win_list:
-            # Tvoje podmínka: pokud má 'ips' (není prázdné), je aktivní
             ips = iface.get("ips")
             if ips:
+                sorted_ips = sorted(ips, key=lambda x: ':' in x)
 
                 interfaces.append({
                     "name": iface["name"],
                     "description": iface["description"],
-                    "ips": iface["ips"],
+                    "ips": sorted_ips,
                     "mac": iface.get("mac", "00:00:00:00:00:00")
                 })
 
@@ -61,6 +61,8 @@ def _get_windows_interfaces():
         log.error("Could not import get_windows_if_list. Are you on Windows?")
     except Exception as e:
         log.error(f"Error getting Windows interfaces: {e}")
+
+    return interfaces
 
     return interfaces
 

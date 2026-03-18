@@ -13,6 +13,7 @@ class ReceiverPage(QWidget):
 
     startListening = Signal(dict)
     stopListening = Signal()
+    refreshInterfaces = Signal()
 
     pingRequested = Signal(str, int)
     remoteConfigChanged = Signal(dict)
@@ -82,6 +83,7 @@ class ReceiverPage(QWidget):
         self.config_panel.interfaceChanged.connect(self._on_interface_changed)
         self.capture_panel.clearRequested.connect(self.clearRequested)
         self.capture_panel.saveRequested.connect(self.saveRequested)
+        self.config_panel.refreshInterfaces.connect(self.refreshInterfaces.emit)
 
     def _on_nav_clicked(self, id):
         self.stack.setCurrentIndex(id)

@@ -28,6 +28,7 @@ class ReceiverController(QObject):
     def _connect_signals(self):
         self._receiver_page.startListening.connect(self._on_start_listening)
         self._receiver_page.stopListening.connect(self._on_stop_listening)
+        self._receiver_page.refreshInterfaces.connect(self._on_refresh_interfaces)
 
         self._receiver_page.clearRequested.connect(self._on_clear_requested)
         self._receiver_page.saveRequested.connect(self._on_save_pcap_requested)
@@ -114,6 +115,12 @@ class ReceiverController(QObject):
 
     def _on_save_pcap_requested(self):
         log.info("Export PCAP requested (Not implemented yet)")
+
+    def _on_refresh_interfaces(self):
+        try:
+            self._receiver_page.set_interfaces(get_interfaces())
+        except Exception as e:
+            log.error(f"Failed to refresh interfaces: {e}")
 
     def handle_incoming_packets(self, packets_list):
         for pkt in packets_list:

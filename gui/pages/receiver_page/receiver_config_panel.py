@@ -107,6 +107,7 @@ class ReceiverLocalPanel(QFrame):
     interfaceChanged = Signal(str)
     startListening = Signal(dict)  # Emits config when start requested
     stopListening = Signal()  # Emits when stop requested
+    refreshInterfaces = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -130,14 +131,26 @@ class ReceiverLocalPanel(QFrame):
         self.form_layout.setVerticalSpacing(15)
 
         # Inputs
+        int_layout = QHBoxLayout()
         self.interface_combo = QComboBox()
+        self.interface_combo.setFixedHeight(28)
         self.interface_combo.currentIndexChanged.connect(self._on_interface_change)
+
+        self.btn_refresh = QPushButton("↻")
+        self.btn_refresh.setObjectName("btn_refresh")
+        self.btn_refresh.setFixedSize(28, 28)
+        self.btn_refresh.setToolTip("Refresh Network Interfaces")
+        self.btn_refresh.clicked.connect(self.refreshInterfaces.emit)
+
+        int_layout.addWidget(self.interface_combo, 1)
+        int_layout.addWidget(self.btn_refresh, 0)
+
+        self.form_layout.addRow("Interface:", int_layout)
 
         self.port_spin = QSpinBox()
         self.port_spin.setRange(1024, 65535)
         self.port_spin.setValue(6000)
 
-        self.form_layout.addRow("Interface:", self.interface_combo)
         self.form_layout.addRow("Listen Port:", self.port_spin)
 
         line = QFrame()
@@ -239,6 +252,7 @@ class ReceiverConfigurationPanel(QWidget):
     startListening = Signal(dict)
     stopListening = Signal()
     interfaceChanged = Signal(str)
+    refreshInterfaces = Signal()
 
     pingRequested = Signal(str, int)
     remoteConfigChanged = Signal(dict)
@@ -259,6 +273,7 @@ class ReceiverConfigurationPanel(QWidget):
         self.local_panel.interfaceChanged.connect(self.interfaceChanged)
         self.local_panel.startListening.connect(self.startListening)
         self.local_panel.stopListening.connect(self.stopListening)
+        self.local_panel.refreshInterfaces.connect(self.refreshInterfaces.emit)
 
         self.remote_panel.pingRequested.connect(self.pingRequested)
         self.remote_panel.configChanged.connect(self.remoteConfigChanged)

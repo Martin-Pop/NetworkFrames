@@ -17,6 +17,7 @@ class SenderPage(QWidget):
     stopClicked = Signal()
     pauseClicked = Signal()
     backClicked = Signal()
+    refreshInterfaces = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -74,6 +75,7 @@ class SenderPage(QWidget):
 
     def _connect_internals(self):
         self.conf_panel.interfaceChanged.connect(self._on_interface_changed)
+        self.conf_panel.refreshInterfaces.connect(self.refreshInterfaces.emit)
 
         self.btns_panel.startClicked.connect(self.startClicked)
         self.btns_panel.stopClicked.connect(self.stopClicked)

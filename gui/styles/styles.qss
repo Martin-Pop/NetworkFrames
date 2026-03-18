@@ -264,6 +264,20 @@ QToolButton:hover {
     border-radius: 4px;
 }
 
+#btn_refresh {
+    background-color: @SECONDARY;
+    color: @PRIMARY_TEXT;
+    font-size: 16px;
+    margin: 0;
+}
+
+#btn_refresh:hover {
+    background-color: @SECONDARY;
+    color: @PRIMARY_TEXT;
+    border: 1px solid @SECONDARY;
+    border-radius: 5px
+}
+
 /* =================================================================================
    CHECKBOXES
    ================================================================================= */

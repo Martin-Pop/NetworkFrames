@@ -25,6 +25,7 @@ class SenderController(QObject):
         self._sender_page.backClicked.connect(self._close_sender)
         self._sender_page.pauseClicked.connect(self._toggle_sending)
 
+        self._sender_page.refreshInterfaces.connect(self._on_refresh_interfaces)
         self._sender_page.set_interfaces(get_interfaces())
 
     def load_frames(self, ids, group_name):
@@ -107,6 +108,9 @@ class SenderController(QObject):
     def _close_sender(self):
         self._stop_sending()
         self.senderClosed.emit()
+
+    def _on_refresh_interfaces(self):
+        self._sender_page.set_interfaces(get_interfaces())
 
     def sync_current_with_removed_frames(self, ids):
         """
