@@ -54,7 +54,9 @@ class ProtocolStackWidget(QFrame):
         self._clear_buttons()
 
 class ProtocolEditorDialog(QDialog):
-    stackUpdated = Signal(tuple)
+    layerAdded = Signal(int)
+    layerRemoved = Signal(int)
+    layerUpdated = Signal(int, str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -65,9 +67,6 @@ class ProtocolEditorDialog(QDialog):
         main_layout = QVBoxLayout(self)
 
         self.editor_container = QVBoxLayout()
-        self.editor_container.addWidget(QComboBox())
-        self.editor_container.addWidget(QComboBox())
-
         main_layout.addLayout(self.editor_container)
         main_layout.addStretch()
 
@@ -87,35 +86,53 @@ class ProtocolEditorDialog(QDialog):
         self.save_button.clicked.connect(self.accept)
         self.cancel_button.clicked.connect(self.reject)
 
-    def rebuild(self, stack):
-
-        log.debug('rebuilding stack editor' + str(stack))
-
+    def rebuild(self, stack, can_add_top=True, can_add_bottom=True):
         self._clear_layout()
-        self.editor_container.addStretch()
+
+        if can_add_top:
+            btn_add_top = QPushButton("+ Add Upper Layer")
+            btn_add_top.setProperty('styleClass', 'common_button')
+            btn_add_top.clicked.connect(lambda: self.layerAdded.emit(len(stack)))
+            self.editor_container.addWidget(btn_add_top)
 
         for i in range(len(stack) - 1, -1, -1):
             node = stack[i]
-            if node.current is None and node.options is None:
-                widget = QPushButton('Add')
-                widget.setObjectName('add_button')
-                widget.clicked.connect(lambda checked, index=i: self.stackUpdated.emit((index, None)))
+
+            row_frame = QFrame()
+            row_frame.setObjectName("layer_card")
+            row_layout = QHBoxLayout(row_frame)
+            row_layout.setContentsMargins(5, 5, 5, 5)
+
+            combo = QComboBox()
+            if node.options:
+                combo.addItems(node.options)
+            combo.setPlaceholderText('Select protocol')
+
+            combo.blockSignals(True)
+            if node.current is None:
+                combo.setCurrentIndex(-1)
             else:
-                widget = QComboBox()
-                widget.addItems(node.options)
-                widget.setPlaceholderText('Select protocol')
-                if node.current is None:
-                    widget.setCurrentIndex(-1)
-                else:
-                    widget.setCurrentText(node.current)
+                combo.setCurrentText(node.current)
+            combo.blockSignals(False)
 
-                widget.currentIndexChanged.connect(lambda idx, combo=widget, index=i: self._on_protocol_selected(combo, index))
+            combo.currentIndexChanged.connect(lambda idx, c=combo, index=i: self.layerUpdated.emit(index, c.currentText()))
 
-            self.editor_container.addWidget(widget)
+            remove_btn = QPushButton("X")
+            remove_btn.setObjectName("btn_remove_layer")
+            remove_btn.clicked.connect(lambda checked, index=i: self.layerRemoved.emit(index))
 
-    def _on_protocol_selected(self, combo_widget, index):
-        selected_text = combo_widget.currentText()
-        self.stackUpdated.emit((index, selected_text))
+            if not (i == 0 or i == len(stack) - 1):
+                remove_btn.setEnabled(False)
+
+            row_layout.addWidget(combo, 1)
+            row_layout.addWidget(remove_btn, 0)
+            self.editor_container.addWidget(row_frame)
+
+        if can_add_bottom:
+            btn_add_bottom = QPushButton("+ Add Lower Layer")
+            btn_add_bottom.setProperty('styleClass', 'common_button')
+            btn_add_bottom.clicked.connect(lambda: self.layerAdded.emit(0))
+            self.editor_container.addWidget(btn_add_bottom)
 
     def _clear_layout(self):
         while self.editor_container.count():

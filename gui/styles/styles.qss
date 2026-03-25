@@ -569,3 +569,30 @@ QPushButton#packetListRemoveBtn {
     border: 1px solid #d9534f;
     padding: 2px;
 }
+
+
+QFrame#layer_card {
+    background-color: @BG_SECONDARY;
+    border: 1px solid @BORDER;
+    border-radius: 4px;
+    padding: 2px;
+    margin-bottom: 2px;
+}
+
+QPushButton#btn_remove_layer {
+    background-color: transparent;
+    color: #d9534f;
+    font-weight: bold;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    width: 25px;
+}
+
+QPushButton#btn_remove_layer:hover {
+    background-color: #d9534f;
+    color: white;
+}
+
+QPushButton#btn_remove_layer:disabled {
+    color: @BORDER;
+}

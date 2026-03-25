@@ -18,6 +18,10 @@ class EditorPage(QStackedWidget):
     saveActivated = Signal()
     exitActivated = Signal()
 
+    layerAdded = Signal(int)
+    layerRemoved = Signal(int)
+    layerUpdated = Signal(int, str)
+
     infoRequested = Signal(str, str, str)
 
     def __init__(self, parent=None):
@@ -44,7 +48,9 @@ class EditorPage(QStackedWidget):
 
         # Protocol Stack
         self.protocol_stack_widget = ProtocolStackWidget()
-        self.protocol_stack_widget.editor.stackUpdated.connect(self.stackUpdated)
+        self.protocol_stack_widget.editor.layerAdded.connect(self.layerAdded)
+        self.protocol_stack_widget.editor.layerRemoved.connect(self.layerRemoved)
+        self.protocol_stack_widget.editor.layerUpdated.connect(self.layerUpdated)
         self.protocol_stack_widget.editor.finished.connect(self.stackEditorExit)
         left_layout.addWidget(self.protocol_stack_widget,1)
 
@@ -104,8 +110,8 @@ class EditorPage(QStackedWidget):
         self.protocol_stack_widget.load_buttons(cls_names)
         self.editor_widget.load_editor(layers)
 
-    def update_stack_editor(self, stack):
-        self.protocol_stack_widget.editor.rebuild(stack)
+    def update_stack_editor(self, stack, can_add_top=True, can_add_bottom=True):
+        self.protocol_stack_widget.editor.rebuild(stack, can_add_top, can_add_bottom)
 
     def update_page(self, stack, layers):
         #update stack and field editor
