@@ -3,7 +3,7 @@ import time
 from scapy.all import sendp
 import logging
 
-from core.remote_client import RemoteClient
+from core.network.remote_client import RemoteClient
 
 log = logging.getLogger(__name__)
 

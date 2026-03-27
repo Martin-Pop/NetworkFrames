@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtGui import QColor, QBrush
 from PySide6.QtCore import Qt, Signal, QPoint
 
-from core.input_output.files import get_file, save_file
+from utils.files import get_file, save_file
 from gui.pages.frame_page.hexdump_window import HexDumpWindow
 
 # ROLES

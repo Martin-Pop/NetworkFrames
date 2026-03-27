@@ -2,7 +2,7 @@ import logging, sys
 from PySide6.QtWidgets import QApplication
 from controllers.main_controller import MainController
 from gui.main_window import MainWindow
-from core.input_output.logger import setup_logger, register_main_window_logger
+from utils.logger import setup_logger, register_main_window_logger
 from gui.styles.style_loader import apply_stylesheet
 
 def main():

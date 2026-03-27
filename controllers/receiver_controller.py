@@ -1,7 +1,7 @@
 from PySide6.QtCore import QObject, Signal
-from core.input_output.interfaces import get_interfaces
-from core.receiver_engine import ReceiverEngine
-from core.remote_client import RemoteClient
+from core.network.interfaces import get_interfaces
+from core.network.receiver_engine import ReceiverEngine
+from core.network.remote_client import RemoteClient
 import logging
 
 log = logging.getLogger(__name__)

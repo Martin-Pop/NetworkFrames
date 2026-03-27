@@ -1,7 +1,7 @@
 from PySide6.QtCore import QObject, Signal
 
-from core.sender_worker import SenderWorker
-from core.input_output.interfaces import get_interfaces
+from core.network.sender_worker import SenderWorker
+from core.network.interfaces import get_interfaces
 import logging
 log = logging.getLogger(__name__)
 

@@ -1,5 +1,5 @@
 from PySide6.QtCore import QObject, Signal
-from core.input_output.pcap import write_pcap_file, read_pcap_generator
+from utils.pcap import write_pcap_file, read_pcap_generator
 from gui.pages.frame_page.frame_list_panel import ROLE_ID
 import logging
 log = logging.getLogger(__name__)
