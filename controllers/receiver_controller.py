@@ -50,8 +50,14 @@ class ReceiverController(QObject):
         try:
             all_interfaces = get_interfaces()
             selected_iface = next((i for i in all_interfaces if i['name'] == local_iface_name), None)
+
             if selected_iface and selected_iface.get('ips'):
-                bind_ip = selected_iface['ips'][1]
+                ipv4_addresses = [ip for ip in selected_iface['ips'] if ':' not in ip]
+
+                if ipv4_addresses:
+                    bind_ip = ipv4_addresses[0]
+                else:
+                    bind_ip = selected_iface['ips'][0]
 
         except Exception as e:
             log.warning(f"Could not resolve IP for interface {local_iface_name}, defaulting to 0.0.0.0: {e}")

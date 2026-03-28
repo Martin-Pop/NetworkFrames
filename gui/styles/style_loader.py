@@ -1,13 +1,14 @@
 import json
 import os
 import logging
+
+from utils.files import get_resource_path
+
 log = logging.getLogger(__name__)
 
-def apply_stylesheet(app, theme_file='colors.json', qss_file='styles.qss'):
-
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    json_path = os.path.join(base_dir, theme_file)
-    qss_path = os.path.join(base_dir, qss_file)
+def apply_stylesheet(app, theme_file='gui/styles/colors.json', qss_file='gui/styles/styles.qss'):
+    json_path = get_resource_path(theme_file)
+    qss_path = get_resource_path(qss_file)
 
     try:
         with open(json_path, 'r', encoding='utf-8') as f:

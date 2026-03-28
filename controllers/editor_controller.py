@@ -3,6 +3,8 @@ import logging
 import json
 import os
 
+from utils.files import get_resource_path
+
 log = logging.getLogger(__name__)
 
 
@@ -12,7 +14,8 @@ class EditorController(QObject):
     def __init__(self, editor_page, frame_manager, protocol_stack):
         super().__init__()
 
-        self._descriptions = self._load_descriptions("field_descriptions.json")
+        descriptions_path = get_resource_path("field_descriptions.json")
+        self._descriptions = self._load_descriptions(descriptions_path)
 
         self._editor_page = editor_page
         self._frame_manager = frame_manager

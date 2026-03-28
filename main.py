@@ -1,4 +1,12 @@
-import logging, sys
+import logging, sys, os
+
+if sys.stdin is None:
+    sys.stdin = open(os.devnull, "r")
+if sys.stdout is None:
+    sys.stdout = open(os.devnull, "w")
+if sys.stderr is None:
+    sys.stderr = open(os.devnull, "w")
+
 from PySide6.QtWidgets import QApplication
 from controllers.main_controller import MainController
 from gui.main_window import MainWindow
