@@ -102,7 +102,7 @@ class SenderWorker(QThread):
                         break
 
                     log.debug(f"Sending packet {packet_to_send} {self.iface}")
-                    sendp(packet_to_send, iface=self.iface)
+                    sendp(packet_to_send, iface=self.iface, verbose=False) # VERBOSE OFF IS VERY IMPORTANT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
                     sent_count += 1
                     self.packetSent.emit(sent_count)
