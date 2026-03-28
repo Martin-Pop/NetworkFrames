@@ -87,7 +87,7 @@ def _get_linux_interfaces():
                     interfaces.append({
                         "name": iface_name,
                         "description": iface_name,
-                        "ip": ip,
+                        "ips": [ip],
                         "mac": mac
                     })
             except Exception:

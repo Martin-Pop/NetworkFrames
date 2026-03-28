@@ -3,3 +3,5 @@
 test-local
 build
 dist
+*__pycache__*
+app.log

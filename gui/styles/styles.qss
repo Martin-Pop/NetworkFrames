@@ -438,7 +438,7 @@ QInputDialog QPushButton {
 }
 
 QInputDialog QPushButton:hover {
-    background-color: @BG_HOVER;
+    background-color: @PRIMARY_HOVER;
     border-color: @PRIMARY;
 }
 
@@ -471,7 +471,7 @@ QMessageBox QPushButton {
 }
 
 QMessageBox QPushButton:hover {
-    background-color: @BG_HOVER;
+    background-color: @PRIMARY_HOVER;
     border-color: @PRIMARY;
 }
 
