@@ -14,7 +14,7 @@ class EditorController(QObject):
     def __init__(self, editor_page, frame_manager, protocol_stack):
         super().__init__()
 
-        descriptions_path = get_resource_path("field_descriptions.json")
+        descriptions_path = get_resource_path(os.path.join("resources","field_descriptions.json"))
         self._descriptions = self._load_descriptions(descriptions_path)
 
         self._editor_page = editor_page

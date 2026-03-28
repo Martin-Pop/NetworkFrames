@@ -8,18 +8,21 @@ if sys.stderr is None:
     sys.stderr = open(os.devnull, "w")
 
 from PySide6.QtWidgets import QApplication
+from PySide6.QtGui import QIcon
 from controllers.main_controller import MainController
 from gui.main_window import MainWindow
 from utils.logger import setup_logger, register_main_window_logger
+from utils.files import get_resource_path
 from gui.styles.style_loader import apply_stylesheet
 
 def main():
-
     setup_logger(logging.DEBUG)
     log = logging.getLogger(__name__)
 
     app = QApplication(sys.argv)
-    log.debug("Application started")
+
+    icon_path = get_resource_path(os.path.join("resources", "icon.png"))
+    app.setWindowIcon(QIcon(icon_path))
 
     try:
         apply_stylesheet(app)
@@ -36,6 +39,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-

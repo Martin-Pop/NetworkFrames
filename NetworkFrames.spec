@@ -5,7 +5,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('gui/styles/colors.json', 'gui/styles'), ('gui/styles/styles.qss', 'gui/styles'), ('field_descriptions.json', '.')],
+    datas=[('resources/icon.png', 'resources'),('resources/field_descriptions.json', 'resources'),('gui/styles/colors.json', 'gui/styles'),('gui/styles/styles.qss', 'gui/styles')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
