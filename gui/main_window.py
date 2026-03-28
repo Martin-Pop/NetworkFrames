@@ -65,9 +65,9 @@ class MainWindow(QMainWindow):
         self._init_page(self.receiver_page, 'receiver')
 
         # settings
-        self.settings_page = _create_page("--settings--")
+        # self.settings_page = _create_page("--settings--")
         self.control_layout.addStretch()
-        self._init_page(self.settings_page, 'settings')
+        # self._init_page(self.settings_page, 'settings')
 
         main_layout = QVBoxLayout(central_widget)
         main_layout.addWidget(control_bar)

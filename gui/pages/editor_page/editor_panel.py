@@ -77,13 +77,15 @@ class FieldEditorWidget(QWidget):
 
         content_widget = QWidget()
         content_widget.setObjectName("editor_scroll_content")
-        form_layout = QFormLayout(content_widget)
-        form_layout.setContentsMargins(10, 10, 10, 10)
-        form_layout.setSpacing(15)
+
+        main_v_layout = QVBoxLayout(content_widget)
+        main_v_layout.setContentsMargins(10, 10, 10, 10)
+        main_v_layout.setSpacing(15)
 
         title = QLabel(layer_name)
         title.setStyleSheet("font-weight: bold; font-size: 16px; color: #333; margin-bottom: 10px;")
-        form_layout.addRow(title)
+
+        main_v_layout.addWidget(title)
 
         for f in layer.fields_desc:
             val = layer.getfieldval(f.name)
@@ -91,11 +93,9 @@ class FieldEditorWidget(QWidget):
             field_widget = FieldRowFactory.create_row(f.name, cls_name, f, val)
             field_widget.infoRequested.connect(self.infoRequested)
 
-            form_layout.addRow(field_widget)
+            main_v_layout.addWidget(field_widget)
 
-        spacer_widget = QWidget()
-        spacer_widget.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Expanding)
-        form_layout.addRow(spacer_widget)
+        main_v_layout.addStretch(1)
 
         scroll_area.setWidget(content_widget)
         self.stack.addWidget(scroll_area)

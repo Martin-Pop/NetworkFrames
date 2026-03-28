@@ -29,20 +29,29 @@ class BaseFieldRow(QWidget):
     def _init_base_ui(self):
         main_layout = QHBoxLayout(self)
         main_layout.setContentsMargins(0, 5, 0, 5)
-        main_layout.setSpacing(15)
+        main_layout.setSpacing(10)
 
         left_container = QWidget()
-        left_layout = QVBoxLayout(left_container)
-        left_layout.setContentsMargins(0, 0, 0, 0)
-        left_layout.setSpacing(2)
-        left_container.setSizePolicy(QSizePolicy.Policy.Maximum, QSizePolicy.Policy.Preferred)
-        left_container.setMinimumWidth(120)
+        left_container.setFixedWidth(100)
 
-        left_top_layout = QHBoxLayout()
-        left_top_layout.setSpacing(5)
+        left_layout = QHBoxLayout(left_container)
+        left_layout.setContentsMargins(0, 0, 0, 0)
+        left_layout.setSpacing(5)
+
+        text_container = QWidget()
+        text_layout = QVBoxLayout(text_container)
+        text_layout.setContentsMargins(0, 0, 0, 0)
+        text_layout.setSpacing(2)
 
         self.name_label = QLabel(self.field_name_text)
         self.name_label.setStyleSheet("font-weight: bold;")
+
+        self.size_label = QLabel(self._get_size_string(self.field_desc))
+        self.size_label.setStyleSheet("color: gray; font-size: 11px;")
+
+        text_layout.addWidget(self.name_label)
+        text_layout.addWidget(self.size_label)
+        text_layout.addStretch()
 
         self.info_btn = QToolButton()
         self.info_btn.setText("?")
@@ -51,16 +60,9 @@ class BaseFieldRow(QWidget):
         self.info_btn.setToolTip("Show field info")
         self.info_btn.clicked.connect(self._emit_info)
 
-        left_top_layout.addWidget(self.name_label)
-        left_top_layout.addWidget(self.info_btn)
-        left_top_layout.addStretch()
-
-        self.size_label = QLabel(self._get_size_string(self.field_desc))
-        self.size_label.setStyleSheet("color: gray; font-size: 11px;")
-
-        left_layout.addLayout(left_top_layout)
-        left_layout.addWidget(self.size_label)
+        left_layout.addWidget(text_container)
         left_layout.addStretch()
+        left_layout.addWidget(self.info_btn, 0, Qt.AlignmentFlag.AlignTop)
 
         right_container = QWidget()
         right_layout = QVBoxLayout(right_container)
@@ -115,8 +117,8 @@ class BaseFieldRow(QWidget):
 
     def _emit_info(self):
         type_name = self.field_desc.__class__.__name__.replace("Field", "")
-        info_text = f"<b>Type:</b> {type_name}<br>"
-        info_text += f"<b>Size:</b> {self._get_size_string(self.field_desc)}<br>"
+        # info_text = f"<b>Type:</b> {type_name}<br>"
+        info_text = f"<b>Size:</b> {self._get_size_string(self.field_desc)}<br>"
 
         if hasattr(self.field_desc, "default") and self.field_desc.default is not None:
             try:
