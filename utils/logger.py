@@ -15,7 +15,11 @@ LOG_FORMAT = (
 AUTO_CLOSE_TIMER = 2500 #ms
 _qt_log_handler_instance = None
 
-class QtLogHandler(logging.Handler, QObject):
+class LogSignals(QObject):
+    show_error_signal = Signal(str, str, str)
+    show_notification_signal = Signal(int, str, str)
+
+class QtLogHandler(logging.Handler):
     """
     Custom logging handler that emits a signal when an event occurs.
     Signal is connected to a function that displays the info in a message box.
@@ -26,9 +30,11 @@ class QtLogHandler(logging.Handler, QObject):
 
     def __init__(self):
         logging.Handler.__init__(self)
-        QObject.__init__(self)
-        self.show_error_signal.connect(self._show_error_box)
-        self.show_notification_signal.connect(self._show_notification_box)
+        super().__init__()
+
+        self.signals = LogSignals()
+        self.signals.show_error_signal.connect(self._show_error_box)
+        self.signals.show_notification_signal.connect(self._show_notification_box)
 
         self._main_window_ref = None
 
@@ -66,14 +72,14 @@ class QtLogHandler(logging.Handler, QObject):
             if record.exc_info:
                 msg_detail = "".join(traceback.format_exception(*record.exc_info))
 
-            self.show_error_signal.emit(msg_title, msg_body, msg_detail)
+            self.signals.show_error_signal.emit(msg_title, msg_body, msg_detail)
 
         # info and warning
         elif record.levelno >= logging.INFO:
             msg_body = record.getMessage()
             msg_title = record.levelname.capitalize()
 
-            self.show_notification_signal.emit(record.levelno, msg_title, msg_body)
+            self.signals.show_notification_signal.emit(record.levelno, msg_title, msg_body)
 
     def _show_error_box(self, title, body, detail):
         """
