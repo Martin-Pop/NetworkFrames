@@ -5,6 +5,7 @@ from .flags_row import FlagsRow
 from .packet_list_row import PacketListRow
 from .string_row import StringRow
 from .readonly_row import ReadOnlyRow
+from .options_list_row import OptionsListRow
 
 class FieldRowFactory:
     @staticmethod
@@ -16,10 +17,7 @@ class FieldRowFactory:
             return PacketListRow(field_name_text, cls_name, field_desc, val)
 
         if isinstance(val, list):
-            return ReadOnlyRow(field_name_text, cls_name, field_desc, val)
-
-        if isinstance(val, list):
-            return ReadOnlyRow(field_name_text, cls_name, field_desc, val)
+            return OptionsListRow(field_name_text, cls_name, field_desc, val)
 
         if isinstance(f, (EnumField, MultiEnumField)):
             return EnumRow(field_name_text, cls_name, field_desc, val)
