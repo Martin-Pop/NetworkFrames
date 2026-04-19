@@ -596,3 +596,39 @@ QPushButton#btn_remove_layer:hover {
 QPushButton#btn_remove_layer:disabled {
     color: @BORDER;
 }
+
+/* =================================================================================
+   QCompleter, QListVeiw
+   ================================================================================= */
+QListView {
+    background-color: @BG_INPUT;
+    border: 2px solid @PRIMARY;
+    border-radius: 4px;
+    padding: 4px;
+    outline: 0px;
+    color: @TEXT;
+}
+
+QListView::item {
+    min-height: 25px;
+    border-radius: 2px;
+    padding-left: 5px;
+}
+
+QListView::item:hover,
+QListView::item:selected {
+    background-color: @PRIMARY;
+    color: @PRIMARY_TEXT;
+}
+
+QListView QScrollBar:vertical {
+    background: @BG;
+    width: 8px;
+    border-radius: 4px;
+}
+
+QListView QScrollBar::handle:vertical {
+    background: @SECONDARY;
+    border-radius: 4px;
+    min-height: 20px;
+}

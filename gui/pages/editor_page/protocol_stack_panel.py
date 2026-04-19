@@ -1,11 +1,47 @@
 from PySide6.QtWidgets import (
-    QWidget, QHBoxLayout, QVBoxLayout,
-    QPushButton, QDialog, QComboBox, QFrame
+    QHBoxLayout, QVBoxLayout,
+    QPushButton, QDialog, QComboBox, QFrame, QCompleter
 )
-
-from PySide6.QtCore import Qt, Signal, Slot
+from PySide6.QtCore import Qt, Signal
 import logging
 log = logging.getLogger(__name__)
+
+
+class SearchableComboBox(QComboBox):
+    """
+    Custom QComboBox that fixes the PySide6 'flash and close' bug.
+    It uses a custom QCompleter and safely detaches it while the
+    main dropdown is open, preventing popups from fighting for focus.
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setEditable(True)
+        self.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
+
+        self._custom_completer = QCompleter(self)
+        self._custom_completer.setFilterMode(Qt.MatchFlag.MatchContains)
+        self._custom_completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+        self._custom_completer.setCompletionMode(QCompleter.CompletionMode.PopupCompletion)
+
+        self._custom_completer.setModel(self.model())
+        self.setCompleter(self._custom_completer)
+
+    def showPopup(self):
+        """
+        Temporarily detaches the completer before the main dropdown opens.
+        This stops the completer from stealing focus and closing the menu.
+        """
+        self.setCompleter(None)
+        super().showPopup()
+
+    def hidePopup(self):
+        """
+        Restores the custom completer once the main dropdown is closed,
+        so typing works again.
+        """
+        super().hidePopup()
+        self.setCompleter(self._custom_completer)
 
 class ProtocolStackWidget(QFrame):
     protocolSelected = Signal(str)
@@ -103,9 +139,12 @@ class ProtocolEditorDialog(QDialog):
             row_layout = QHBoxLayout(row_frame)
             row_layout.setContentsMargins(5, 5, 5, 5)
 
-            combo = QComboBox()
+            combo = SearchableComboBox()
+
             if node.options:
-                combo.addItems(node.options)
+                sorted_options = sorted(node.options)
+                combo.addItems(sorted_options)
+
             combo.setPlaceholderText('Select protocol')
 
             combo.blockSignals(True)

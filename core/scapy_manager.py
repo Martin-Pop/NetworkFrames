@@ -22,10 +22,11 @@ class ScapyManager:
         #whitelist
         if allowed_protocols is None:
             self.whitelist = {
-                'Ether', 'Dot1Q', 'ARP',
-                'IP', 'IPv6', 'ICMP', 'TCP', 'UDP',
-                'DNS', 'Raw', 'Padding'
+                name for name, obj in globals().items()
+                if isinstance(obj, type) and issubclass(obj, Packet) and name != 'Packet'
             }
+            # Ensure Raw and Padding are included
+            self.whitelist.update({'Raw', 'Padding'})
         else:
             self.whitelist = set(allowed_protocols)
 
