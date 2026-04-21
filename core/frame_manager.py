@@ -111,13 +111,16 @@ class NetworkFrame(QObject):
 
     def prepare_layers(self):
         layers = []
-        frame = self._scapy_object
+        current = self._scapy_object
 
-        if frame is None:
+        if current is None:
             return layers
 
-        for i in range(len(frame.layers())):
-            layers.append(frame.getlayer(i))
+        # Procházíme paket vrstvu po vrstvě pomocí .payload (spojový seznam)
+        # Tímto se vyhneme extrakci vnitřních 'options' jako je RouterAlert
+        while current and not isinstance(current, scapy_all.NoPayload):
+            layers.append(current)
+            current = current.payload
 
         return layers
 
@@ -214,9 +217,11 @@ class NetworkFrame(QObject):
         self._update_info()
 
     def _get_zero_value(self, field_desc):
-        log.debug(type(field_desc))
+        # log.debug(type(field_desc))
         if isinstance(field_desc, (IPField, SourceIPField, DestIPField)):
             return "0.0.0.0"
+        elif isinstance(field_desc, (IP6Field, SourceIP6Field, DestIP6Field)):
+            return "::"
         elif isinstance(field_desc, (MACField, SourceMACField, DestMACField)):
             return "00:00:00:00:00:00"
         elif isinstance(field_desc, (ByteField, ShortField, IntField, BitField)):
