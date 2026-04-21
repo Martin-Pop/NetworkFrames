@@ -1,40 +1,1443 @@
 {
-  "Ether": {
-    "dst": {
-      "verbose_name": "Destination MAC",
-      "description": "The Media Access Control (MAC) address of the receiver."
+  "AH": {
+    "icv": {
+      "verbose_name": "Integrity Check Value",
+      "description": "Cryptographic checksum for data integrity."
+    },
+    "nh": {
+      "verbose_name": "Next Header",
+      "description": "Identifies the type of the next payload."
+    },
+    "padding": {
+      "verbose_name": "Padding",
+      "description": "Padding bytes to align the header."
+    },
+    "payloadlen": {
+      "verbose_name": "Payload Length",
+      "description": "Length of the authentication header in 32-bit words."
+    },
+    "reserved": {
+      "verbose_name": "Reserved",
+      "description": "Reserved for future use."
+    },
+    "seq": {
+      "verbose_name": "Sequence Number",
+      "description": "Counter value to prevent replay attacks."
+    },
+    "spi": {
+      "verbose_name": "Security Parameters Index",
+      "description": "Identifies the security parameters in combination with IP address."
+    }
+  },
+  "ARP": {
+    "hwdst": {
+      "verbose_name": "Target MAC Address",
+      "description": "The hardware address of the receiver."
+    },
+    "hwlen": {
+      "verbose_name": "Hardware Length",
+      "description": "The length of the hardware address."
+    },
+    "hwsrc": {
+      "verbose_name": "Sender MAC Address",
+      "description": "The hardware address of the sender."
+    },
+    "hwtype": {
+      "verbose_name": "Hardware Type",
+      "description": "The network link protocol type."
+    },
+    "op": {
+      "verbose_name": "Operation",
+      "description": "Specifies the operation like request or reply."
+    },
+    "pdst": {
+      "verbose_name": "Target IP Address",
+      "description": "The network address of the receiver."
+    },
+    "plen": {
+      "verbose_name": "Protocol Length",
+      "description": "The length of the network address."
+    },
+    "psrc": {
+      "verbose_name": "Sender IP Address",
+      "description": "The network address of the sender."
+    },
+    "ptype": {
+      "verbose_name": "Protocol Type",
+      "description": "The internetwork protocol type."
+    }
+  },
+  "BOOTP": {
+    "chaddr": {
+      "verbose_name": "Client Hardware Address",
+      "description": "The hardware address of the client."
+    },
+    "ciaddr": {
+      "verbose_name": "Client IP Address",
+      "description": "The IP address of the client."
+    },
+    "file": {
+      "verbose_name": "Boot File Name",
+      "description": "The name of the boot file."
+    },
+    "flags": {
+      "verbose_name": "Flags",
+      "description": "Various bootp flags."
+    },
+    "giaddr": {
+      "verbose_name": "Gateway IP Address",
+      "description": "The IP address of the relay agent."
+    },
+    "hlen": {
+      "verbose_name": "Hardware Address Length",
+      "description": "The length of the hardware address."
+    },
+    "hops": {
+      "verbose_name": "Hops",
+      "description": "The number of relay agents crossed."
+    },
+    "htype": {
+      "verbose_name": "Hardware Type",
+      "description": "The network hardware type."
+    },
+    "op": {
+      "verbose_name": "Message Type",
+      "description": "Indicates request or reply."
+    },
+    "options": {
+      "verbose_name": "Vendor Options",
+      "description": "Optional vendor specific parameters."
+    },
+    "secs": {
+      "verbose_name": "Seconds Elapsed",
+      "description": "Seconds elapsed since client began address acquisition."
+    },
+    "siaddr": {
+      "verbose_name": "Server IP Address",
+      "description": "The IP address of the next server."
+    },
+    "sname": {
+      "verbose_name": "Server Host Name",
+      "description": "Optional server host name."
+    },
+    "xid": {
+      "verbose_name": "Transaction ID",
+      "description": "Random ID to match requests and replies."
+    },
+    "yiaddr": {
+      "verbose_name": "Your IP Address",
+      "description": "The IP address assigned to the client."
+    }
+  },
+  "CookedLinux": {
+    "lladdrlen": {
+      "verbose_name": "Link Layer Address Length",
+      "description": "Length of the sender link layer address."
+    },
+    "lladdrtype": {
+      "verbose_name": "Link Layer Address Type",
+      "description": "Type of the sender link layer address."
+    },
+    "pkttype": {
+      "verbose_name": "Packet Type",
+      "description": "Indicates packet direction or destination type."
+    },
+    "proto": {
+      "verbose_name": "Protocol",
+      "description": "The network layer protocol."
     },
     "src": {
-      "verbose_name": "Source MAC",
-      "description": "The Media Access Control (MAC) address of the sender."
+      "verbose_name": "Source Address",
+      "description": "The link layer source address."
+    }
+  },
+  "DHCP": {
+    "options": {
+      "verbose_name": "DHCP Options",
+      "description": "List of DHCP configuration options."
+    }
+  },
+  "DNS": {
+    "aa": {
+      "verbose_name": "Authoritative Answer",
+      "description": "Indicates if the responding server is an authority."
+    },
+    "ad": {
+      "verbose_name": "Authentic Data",
+      "description": "Indicates that the data is authenticated."
+    },
+    "an": {
+      "verbose_name": "Answer Record",
+      "description": "The resource records answering the question."
+    },
+    "ancount": {
+      "verbose_name": "Answer Count",
+      "description": "Number of resource records in the answer section."
+    },
+    "ar": {
+      "verbose_name": "Additional Record",
+      "description": "Additional resource records."
+    },
+    "arcount": {
+      "verbose_name": "Additional Count",
+      "description": "Number of resource records in the additional section."
+    },
+    "cd": {
+      "verbose_name": "Checking Disabled",
+      "description": "Disables security checking."
+    },
+    "id": {
+      "verbose_name": "Transaction ID",
+      "description": "Identifier to match requests with replies."
+    },
+    "length": {
+      "verbose_name": "Length",
+      "description": "Total length of the DNS packet."
+    },
+    "ns": {
+      "verbose_name": "Authority Record",
+      "description": "Resource records pointing toward an authority."
+    },
+    "nscount": {
+      "verbose_name": "Authority Count",
+      "description": "Number of name server resource records."
+    },
+    "opcode": {
+      "verbose_name": "Opcode",
+      "description": "Specifies the kind of query."
+    },
+    "qd": {
+      "verbose_name": "Question Record",
+      "description": "The question section of the query."
+    },
+    "qdcount": {
+      "verbose_name": "Question Count",
+      "description": "Number of entries in the question section."
+    },
+    "qr": {
+      "verbose_name": "Query/Response",
+      "description": "Indicates if the message is a query or response."
+    },
+    "ra": {
+      "verbose_name": "Recursion Available",
+      "description": "Indicates if recursive query support is available."
+    },
+    "rcode": {
+      "verbose_name": "Response Code",
+      "description": "Status code of the response."
+    },
+    "rd": {
+      "verbose_name": "Recursion Desired",
+      "description": "Directs the server to pursue the query recursively."
+    },
+    "tc": {
+      "verbose_name": "Truncated",
+      "description": "Indicates if the message was truncated."
+    },
+    "z": {
+      "verbose_name": "Zero",
+      "description": "Reserved field set to zero."
+    }
+  },
+  "Dot11": {
+    "FCfield": {
+      "verbose_name": "Frame Control",
+      "description": "Control information for the frame."
+    },
+    "ID": {
+      "verbose_name": "Duration/ID",
+      "description": "Used for duration or station identification."
+    },
+    "SC": {
+      "verbose_name": "Sequence Control",
+      "description": "Sequence and fragment numbers."
+    },
+    "addr1": {
+      "verbose_name": "Address 1",
+      "description": "First MAC address in the frame."
+    },
+    "addr2": {
+      "verbose_name": "Address 2",
+      "description": "Second MAC address in the frame."
+    },
+    "addr3": {
+      "verbose_name": "Address 3",
+      "description": "Third MAC address in the frame."
+    },
+    "addr4": {
+      "verbose_name": "Address 4",
+      "description": "Fourth MAC address in the frame."
+    },
+    "cfe": {
+      "verbose_name": "Contention Free End",
+      "description": "End of contention free period."
+    },
+    "proto": {
+      "verbose_name": "Protocol Version",
+      "description": "The 802.11 protocol version."
+    },
+    "subtype": {
+      "verbose_name": "Subtype",
+      "description": "The specific subtype of the frame."
+    },
+    "type": {
+      "verbose_name": "Type",
+      "description": "The main type of the frame."
+    }
+  },
+  "Dot1Q": {
+    "dei": {
+      "verbose_name": "Drop Eligible Indicator",
+      "description": "Indicates frames eligible to be dropped in congestion."
+    },
+    "prio": {
+      "verbose_name": "Priority Code Point",
+      "description": "Priority level for the frame."
     },
     "type": {
       "verbose_name": "EtherType",
-      "description": "Identifies the protocol encapsulated in the payload (e.g., IPv4 is 0x0800)."
+      "description": "The encapsulated protocol type."
+    },
+    "vlan": {
+      "verbose_name": "VLAN Identifier",
+      "description": "The virtual LAN identification number."
+    }
+  },
+  "EAP": {
+    "code": {
+      "verbose_name": "Code",
+      "description": "Identifies the type of EAP packet."
+    },
+    "desired_auth_types": {
+      "verbose_name": "Desired Auth Types",
+      "description": "List of requested authentication types."
+    },
+    "id": {
+      "verbose_name": "Identifier",
+      "description": "Matches requests with responses."
+    },
+    "identity": {
+      "verbose_name": "Identity",
+      "description": "The identity string."
+    },
+    "len": {
+      "verbose_name": "Length",
+      "description": "Total length of the EAP packet."
+    },
+    "message": {
+      "verbose_name": "Message",
+      "description": "Payload data for the EAP packet."
+    },
+    "type": {
+      "verbose_name": "Type",
+      "description": "The authentication type."
+    }
+  },
+  "ESP": {
+    "data": {
+      "verbose_name": "Data",
+      "description": "The encrypted payload."
+    },
+    "seq": {
+      "verbose_name": "Sequence Number",
+      "description": "Counter to protect against replay attacks."
+    },
+    "spi": {
+      "verbose_name": "Security Parameters Index",
+      "description": "Identifies the security association."
+    }
+  },
+  "Ether": {
+    "dst": {
+      "verbose_name": "Destination MAC",
+      "description": "The hardware address of the receiver."
+    },
+    "src": {
+      "verbose_name": "Source MAC",
+      "description": "The hardware address of the sender."
+    },
+    "type": {
+      "verbose_name": "EtherType",
+      "description": "Identifies the encapsulated protocol."
+    }
+  },
+  "GRE": {
+    "chksum": {
+      "verbose_name": "Checksum",
+      "description": "Checksum for the GRE header and payload."
+    },
+    "chksum_present": {
+      "verbose_name": "Checksum Present",
+      "description": "Indicates if the checksum field is present."
+    },
+    "flags": {
+      "verbose_name": "Flags",
+      "description": "Control flags for GRE."
+    },
+    "key": {
+      "verbose_name": "Key",
+      "description": "Authentication or flow identification key."
+    },
+    "key_present": {
+      "verbose_name": "Key Present",
+      "description": "Indicates if the key field is present."
+    },
+    "offset": {
+      "verbose_name": "Offset",
+      "description": "Offset into the routing information."
+    },
+    "proto": {
+      "verbose_name": "Protocol Type",
+      "description": "The payload protocol type."
+    },
+    "recursion_control": {
+      "verbose_name": "Recursion Control",
+      "description": "Limits the number of additional encapsulations."
+    },
+    "routing_present": {
+      "verbose_name": "Routing Present",
+      "description": "Indicates if routing information is present."
+    },
+    "seqnum_present": {
+      "verbose_name": "Sequence Present",
+      "description": "Indicates if the sequence number is present."
+    },
+    "sequence_number": {
+      "verbose_name": "Sequence Number",
+      "description": "Tracking number for packet order."
+    },
+    "strict_route_source": {
+      "verbose_name": "Strict Source Route",
+      "description": "Indicates strict source routing."
+    },
+    "version": {
+      "verbose_name": "Version",
+      "description": "The GRE protocol version."
+    }
+  },
+  "ICMP": {
+    "addr_mask": {
+      "verbose_name": "Address Mask",
+      "description": "Subnet mask information."
+    },
+    "chksum": {
+      "verbose_name": "Checksum",
+      "description": "Error checking data for the ICMP message."
+    },
+    "code": {
+      "verbose_name": "Code",
+      "description": "Subtype for the ICMP message."
+    },
+    "ext": {
+      "verbose_name": "Extensions",
+      "description": "Optional ICMP extensions."
+    },
+    "extpad": {
+      "verbose_name": "Extension Padding",
+      "description": "Padding for ICMP extensions."
+    },
+    "gw": {
+      "verbose_name": "Gateway Address",
+      "description": "Gateway internet address for redirects."
+    },
+    "id": {
+      "verbose_name": "Identifier",
+      "description": "Matches requests with replies."
+    },
+    "length": {
+      "verbose_name": "Length",
+      "description": "The length of the ICMP message."
+    },
+    "nexthopmtu": {
+      "verbose_name": "Next Hop MTU",
+      "description": "Maximum transmission unit for the next hop."
+    },
+    "ptr": {
+      "verbose_name": "Pointer",
+      "description": "Points to the error location in the original header."
+    },
+    "reserved": {
+      "verbose_name": "Reserved",
+      "description": "Reserved bytes."
+    },
+    "seq": {
+      "verbose_name": "Sequence Number",
+      "description": "Matches requests with replies."
+    },
+    "ts_ori": {
+      "verbose_name": "Originate Timestamp",
+      "description": "Time the sender created the message."
+    },
+    "ts_rx": {
+      "verbose_name": "Receive Timestamp",
+      "description": "Time the message was received."
+    },
+    "ts_tx": {
+      "verbose_name": "Transmit Timestamp",
+      "description": "Time the reply was sent."
+    },
+    "type": {
+      "verbose_name": "Type",
+      "description": "The ICMP message type."
+    },
+    "unused": {
+      "verbose_name": "Unused",
+      "description": "Unused bytes."
+    }
+  },
+  "ICMPv6EchoReply": {
+    "cksum": {
+      "verbose_name": "Checksum",
+      "description": "Checksum for error detection."
+    },
+    "code": {
+      "verbose_name": "Code",
+      "description": "Message subtype."
+    },
+    "data": {
+      "verbose_name": "Data",
+      "description": "Payload data from the request."
+    },
+    "id": {
+      "verbose_name": "Identifier",
+      "description": "Matches requests with replies."
+    },
+    "seq": {
+      "verbose_name": "Sequence Number",
+      "description": "Tracks order of requests and replies."
+    },
+    "type": {
+      "verbose_name": "Type",
+      "description": "ICMPv6 message type."
+    }
+  },
+  "ICMPv6EchoRequest": {
+    "cksum": {
+      "verbose_name": "Checksum",
+      "description": "Checksum for error detection."
+    },
+    "code": {
+      "verbose_name": "Code",
+      "description": "Message subtype."
+    },
+    "data": {
+      "verbose_name": "Data",
+      "description": "Payload data to echo back."
+    },
+    "id": {
+      "verbose_name": "Identifier",
+      "description": "Matches requests with replies."
+    },
+    "seq": {
+      "verbose_name": "Sequence Number",
+      "description": "Tracks order of requests."
+    },
+    "type": {
+      "verbose_name": "Type",
+      "description": "ICMPv6 message type."
+    }
+  },
+  "ICMPv6ND_NA": {
+    "O": {
+      "verbose_name": "Override Flag",
+      "description": "Indicates if existing cache entries should be updated."
+    },
+    "R": {
+      "verbose_name": "Router Flag",
+      "description": "Indicates the sender is a router."
+    },
+    "S": {
+      "verbose_name": "Solicited Flag",
+      "description": "Indicates response is to a solicitation."
+    },
+    "cksum": {
+      "verbose_name": "Checksum",
+      "description": "Checksum for error detection."
+    },
+    "code": {
+      "verbose_name": "Code",
+      "description": "Message subtype."
+    },
+    "res": {
+      "verbose_name": "Reserved",
+      "description": "Reserved bits."
+    },
+    "tgt": {
+      "verbose_name": "Target Address",
+      "description": "The IPv6 address of the target."
+    },
+    "type": {
+      "verbose_name": "Type",
+      "description": "ICMPv6 message type."
+    }
+  },
+  "ICMPv6ND_NS": {
+    "cksum": {
+      "verbose_name": "Checksum",
+      "description": "Checksum for error detection."
+    },
+    "code": {
+      "verbose_name": "Code",
+      "description": "Message subtype."
+    },
+    "res": {
+      "verbose_name": "Reserved",
+      "description": "Reserved bytes."
+    },
+    "tgt": {
+      "verbose_name": "Target Address",
+      "description": "The IPv6 address being resolved."
+    },
+    "type": {
+      "verbose_name": "Type",
+      "description": "ICMPv6 message type."
+    }
+  },
+  "ICMPv6ND_RA": {
+    "H": {
+      "verbose_name": "Home Agent Flag",
+      "description": "Indicates router functions as a home agent."
+    },
+    "M": {
+      "verbose_name": "Managed Address Configuration",
+      "description": "Indicates stateful configuration is available."
+    },
+    "O": {
+      "verbose_name": "Other Configuration",
+      "description": "Indicates other stateful configuration is available."
+    },
+    "P": {
+      "verbose_name": "Proxy Flag",
+      "description": "Indicates a proxy advertisement."
+    },
+    "chlim": {
+      "verbose_name": "Current Hop Limit",
+      "description": "Default hop limit for outgoing packets."
+    },
+    "cksum": {
+      "verbose_name": "Checksum",
+      "description": "Checksum for error detection."
+    },
+    "code": {
+      "verbose_name": "Code",
+      "description": "Message subtype."
+    },
+    "prf": {
+      "verbose_name": "Router Preference",
+      "description": "Preference level for this router."
+    },
+    "reachabletime": {
+      "verbose_name": "Reachable Time",
+      "description": "Time an neighbor is considered reachable."
+    },
+    "res": {
+      "verbose_name": "Reserved",
+      "description": "Reserved bits."
+    },
+    "retranstimer": {
+      "verbose_name": "Retransmission Timer",
+      "description": "Time between neighbor solicitation retransmissions."
+    },
+    "routerlifetime": {
+      "verbose_name": "Router Lifetime",
+      "description": "Time the router is useful as a default router."
+    },
+    "type": {
+      "verbose_name": "Type",
+      "description": "ICMPv6 message type."
+    }
+  },
+  "ICMPv6ND_RS": {
+    "cksum": {
+      "verbose_name": "Checksum",
+      "description": "Checksum for error detection."
+    },
+    "code": {
+      "verbose_name": "Code",
+      "description": "Message subtype."
+    },
+    "res": {
+      "verbose_name": "Reserved",
+      "description": "Reserved bytes."
+    },
+    "type": {
+      "verbose_name": "Type",
+      "description": "ICMPv6 message type."
     }
   },
   "IP": {
-    "version": {
-      "verbose_name": "Version",
-      "description": "Indicates the version of the IP protocol (e.g., 4 for IPv4)."
+    "chksum": {
+      "verbose_name": "Header Checksum",
+      "description": "Error checking for the IP header."
+    },
+    "dst": {
+      "verbose_name": "Destination IP",
+      "description": "The network address of the receiver."
+    },
+    "flags": {
+      "verbose_name": "Flags",
+      "description": "Fragmentation control flags."
+    },
+    "frag": {
+      "verbose_name": "Fragment Offset",
+      "description": "Position of the fragment in the original packet."
+    },
+    "id": {
+      "verbose_name": "Identification",
+      "description": "Unique value to identify fragments."
     },
     "ihl": {
-      "verbose_name": "Header Length",
-      "description": "Internet Header Length. The number of 32-bit words in the header."
+      "verbose_name": "Internet Header Length",
+      "description": "Length of the IP header."
+    },
+    "len": {
+      "verbose_name": "Total Length",
+      "description": "Total length of the IP packet."
+    },
+    "options": {
+      "verbose_name": "Options",
+      "description": "Optional IP routing and control parameters."
+    },
+    "proto": {
+      "verbose_name": "Protocol",
+      "description": "Identifies the payload protocol."
+    },
+    "src": {
+      "verbose_name": "Source IP",
+      "description": "The network address of the sender."
+    },
+    "tos": {
+      "verbose_name": "Type of Service",
+      "description": "Quality of service priority parameters."
     },
     "ttl": {
       "verbose_name": "Time to Live",
-      "description": "Limits the lifespan of the packet to prevent infinite looping."
+      "description": "Lifespan limit for the packet."
+    },
+    "version": {
+      "verbose_name": "Version",
+      "description": "The IP protocol version."
     }
   },
-  "TCP": {
-    "sport": {
-      "verbose_name": "Source Port",
-      "description": "The port number of the sending process."
+  "IPOption": {
+    "copy_flag": {
+      "verbose_name": "Copy Flag",
+      "description": "Indicates if the option is copied to all fragments."
+    },
+    "length": {
+      "verbose_name": "Length",
+      "description": "Length of the option."
+    },
+    "optclass": {
+      "verbose_name": "Option Class",
+      "description": "Category of the option."
+    },
+    "option": {
+      "verbose_name": "Option Number",
+      "description": "Specific option identifier."
+    },
+    "value": {
+      "verbose_name": "Value",
+      "description": "Option data."
+    }
+  },
+  "IPv6": {
+    "dst": {
+      "verbose_name": "Destination IP",
+      "description": "The IPv6 address of the receiver."
+    },
+    "fl": {
+      "verbose_name": "Flow Label",
+      "description": "Maintains sequential packet flow."
+    },
+    "hlim": {
+      "verbose_name": "Hop Limit",
+      "description": "Decrements per hop to prevent infinite loops."
+    },
+    "nh": {
+      "verbose_name": "Next Header",
+      "description": "Identifies the payload type."
+    },
+    "plen": {
+      "verbose_name": "Payload Length",
+      "description": "Size of the payload in bytes."
+    },
+    "src": {
+      "verbose_name": "Source IP",
+      "description": "The IPv6 address of the sender."
+    },
+    "tc": {
+      "verbose_name": "Traffic Class",
+      "description": "Quality of service management."
+    },
+    "version": {
+      "verbose_name": "Version",
+      "description": "The Internet Protocol version."
+    }
+  },
+  "IPv6ExtHdrFragment": {
+    "id": {
+      "verbose_name": "Identification",
+      "description": "Matches fragments to the original packet."
+    },
+    "m": {
+      "verbose_name": "More Fragments",
+      "description": "Indicates if more fragments follow."
+    },
+    "nh": {
+      "verbose_name": "Next Header",
+      "description": "Identifies the payload type."
+    },
+    "offset": {
+      "verbose_name": "Fragment Offset",
+      "description": "Position in the original unfragmented packet."
+    },
+    "res1": {
+      "verbose_name": "Reserved 1",
+      "description": "Reserved bits."
+    },
+    "res2": {
+      "verbose_name": "Reserved 2",
+      "description": "Reserved bits."
+    }
+  },
+  "IPv6ExtHdrHopByHop": {
+    "autopad": {
+      "verbose_name": "Auto Padding",
+      "description": "Automatic padding to align options."
+    },
+    "len": {
+      "verbose_name": "Header Extension Length",
+      "description": "Length of the extension header."
+    },
+    "nh": {
+      "verbose_name": "Next Header",
+      "description": "Identifies the payload type."
+    },
+    "options": {
+      "verbose_name": "Options",
+      "description": "Hop-by-hop options data."
+    }
+  },
+  "IPv6ExtHdrRouting": {
+    "addresses": {
+      "verbose_name": "Addresses",
+      "description": "List of IPv6 addresses for routing."
+    },
+    "len": {
+      "verbose_name": "Header Extension Length",
+      "description": "Length of the routing header."
+    },
+    "nh": {
+      "verbose_name": "Next Header",
+      "description": "Identifies the payload type."
+    },
+    "reserved": {
+      "verbose_name": "Reserved",
+      "description": "Reserved space."
+    },
+    "segleft": {
+      "verbose_name": "Segments Left",
+      "description": "Number of remaining route segments."
+    },
+    "type": {
+      "verbose_name": "Routing Type",
+      "description": "The specific routing variant."
+    }
+  },
+  "ISAKMP": {
+    "exch_type": {
+      "verbose_name": "Exchange Type",
+      "description": "Defines the sequence of messages."
+    },
+    "flags": {
+      "verbose_name": "Flags",
+      "description": "Control flags for ISAKMP."
+    },
+    "id": {
+      "verbose_name": "Message ID",
+      "description": "Identifier for the message phase."
+    },
+    "init_cookie": {
+      "verbose_name": "Initiator Cookie",
+      "description": "Cookie identifying the initiating entity."
+    },
+    "length": {
+      "verbose_name": "Length",
+      "description": "Total length of the ISAKMP message."
+    },
+    "next_payload": {
+      "verbose_name": "Next Payload",
+      "description": "Type of the first payload."
+    },
+    "resp_cookie": {
+      "verbose_name": "Responder Cookie",
+      "description": "Cookie identifying the responding entity."
+    },
+    "version": {
+      "verbose_name": "Version",
+      "description": "ISAKMP protocol version."
+    }
+  },
+  "L2TP": {
+    "hdr": {
+      "verbose_name": "Header Flags",
+      "description": "Flags defining the header structure."
+    },
+    "len": {
+      "verbose_name": "Length",
+      "description": "Total length of the message."
+    },
+    "nr": {
+      "verbose_name": "Next Received",
+      "description": "Sequence number expected to be received."
+    },
+    "ns": {
+      "verbose_name": "Next Sent",
+      "description": "Sequence number of the current message."
+    },
+    "offset": {
+      "verbose_name": "Offset Padding",
+      "description": "Padding bytes for offset."
+    },
+    "session_id": {
+      "verbose_name": "Session ID",
+      "description": "Identifier for the connection session."
+    },
+    "tunnel_id": {
+      "verbose_name": "Tunnel ID",
+      "description": "Identifier for the control connection."
+    },
+    "version": {
+      "verbose_name": "Version",
+      "description": "L2TP protocol version."
+    }
+  },
+  "LLC": {
+    "ctrl": {
+      "verbose_name": "Control",
+      "description": "Control field for connection management."
+    },
+    "dsap": {
+      "verbose_name": "Destination SAP",
+      "description": "Destination service access point."
+    },
+    "ssap": {
+      "verbose_name": "Source SAP",
+      "description": "Source service access point."
+    }
+  },
+  "NTP": {},
+  "PPP": {
+    "proto": {
+      "verbose_name": "Protocol",
+      "description": "Encapsulated protocol type."
+    }
+  },
+  "PPPoE": {
+    "code": {
+      "verbose_name": "Code",
+      "description": "Specifies the PPPoE packet type."
+    },
+    "len": {
+      "verbose_name": "Payload Length",
+      "description": "Length of the PPPoE payload."
+    },
+    "sessionid": {
+      "verbose_name": "Session ID",
+      "description": "Identifier for the PPPoE session."
+    },
+    "type": {
+      "verbose_name": "Type",
+      "description": "PPPoE type."
+    },
+    "version": {
+      "verbose_name": "Version",
+      "description": "PPPoE version."
+    }
+  },
+  "Padding": {
+    "load": {
+      "verbose_name": "Padding Load",
+      "description": "Raw padding bytes."
+    }
+  },
+  "RIP": {
+    "cmd": {
+      "verbose_name": "Command",
+      "description": "Specifies request or response."
+    },
+    "null": {
+      "verbose_name": "Null",
+      "description": "Unused bytes set to zero."
+    },
+    "version": {
+      "verbose_name": "Version",
+      "description": "The RIP protocol version."
+    }
+  },
+  "RadioTap": {
+    "A_MPDU_flags": {
+      "verbose_name": "A-MPDU Flags",
+      "description": "Flags for aggregated MAC protocol data unit."
+    },
+    "A_MPDU_ref": {
+      "verbose_name": "A-MPDU Reference",
+      "description": "Reference number for aggregated frames."
+    },
+    "Antenna": {
+      "verbose_name": "Antenna",
+      "description": "Antenna index used."
+    },
+    "ChannelFlags": {
+      "verbose_name": "Channel Flags",
+      "description": "Characteristics of the channel."
+    },
+    "ChannelFrequency": {
+      "verbose_name": "Channel Frequency",
+      "description": "Frequency of the channel."
+    },
+    "ChannelPlusFlags": {
+      "verbose_name": "Channel Plus Flags",
+      "description": "Extended channel flags."
+    },
+    "ChannelPlusFrequency": {
+      "verbose_name": "Channel Plus Frequency",
+      "description": "Extended channel frequency."
+    },
+    "ChannelPlusNumber": {
+      "verbose_name": "Channel Plus Number",
+      "description": "Extended channel number."
+    },
+    "Ext": {
+      "verbose_name": "Extensions",
+      "description": "Radiotap extensions."
+    },
+    "FEC_type": {
+      "verbose_name": "FEC Type",
+      "description": "Forward error correction type."
+    },
+    "Flags": {
+      "verbose_name": "Flags",
+      "description": "General radio properties."
+    },
+    "GroupID": {
+      "verbose_name": "Group ID",
+      "description": "Group identifier."
+    },
+    "HT_format": {
+      "verbose_name": "HT Format",
+      "description": "High throughput format details."
+    },
+    "KnownVHT": {
+      "verbose_name": "Known VHT",
+      "description": "Known very high throughput parameters."
+    },
+    "Lock_Quality": {
+      "verbose_name": "Lock Quality",
+      "description": "Signal lock quality metric."
+    },
+    "MCS_bandwidth": {
+      "verbose_name": "MCS Bandwidth",
+      "description": "Modulation and coding scheme bandwidth."
+    },
+    "MCS_index": {
+      "verbose_name": "MCS Index",
+      "description": "Modulation and coding scheme index."
+    },
+    "Ness_LSB": {
+      "verbose_name": "Ness LSB",
+      "description": "Least significant bit for Ness."
+    },
+    "PartialAID": {
+      "verbose_name": "Partial AID",
+      "description": "Partial association ID."
+    },
+    "PresentVHT": {
+      "verbose_name": "Present VHT",
+      "description": "Flags for present VHT features."
+    },
+    "RU_channel1": {
+      "verbose_name": "RU Channel 1",
+      "description": "Resource unit channel one information."
+    },
+    "RU_channel2": {
+      "verbose_name": "RU Channel 2",
+      "description": "Resource unit channel two information."
+    },
+    "RXFlags": {
+      "verbose_name": "RX Flags",
+      "description": "Reception specific flags."
+    },
+    "Rate": {
+      "verbose_name": "Data Rate",
+      "description": "Transmission speed."
+    },
+    "STBC_streams": {
+      "verbose_name": "STBC Streams",
+      "description": "Space-time block coding streams."
+    },
+    "TXFlags": {
+      "verbose_name": "TX Flags",
+      "description": "Transmission specific flags."
+    },
+    "VHT_bandwidth": {
+      "verbose_name": "VHT Bandwidth",
+      "description": "Very high throughput bandwidth."
+    },
+    "dBm_AntNoise": {
+      "verbose_name": "Antenna Noise (dBm)",
+      "description": "Background noise level."
+    },
+    "dBm_AntSignal": {
+      "verbose_name": "Antenna Signal (dBm)",
+      "description": "Signal strength in decibels."
+    },
+    "guard_interval": {
+      "verbose_name": "Guard Interval",
+      "description": "Time interval between symbols."
+    },
+    "he_data1": {
+      "verbose_name": "HE Data 1",
+      "description": "High efficiency data segment one."
+    },
+    "he_data2": {
+      "verbose_name": "HE Data 2",
+      "description": "High efficiency data segment two."
+    },
+    "he_data3": {
+      "verbose_name": "HE Data 3",
+      "description": "High efficiency data segment three."
+    },
+    "he_data4": {
+      "verbose_name": "HE Data 4",
+      "description": "High efficiency data segment four."
+    },
+    "he_data5": {
+      "verbose_name": "HE Data 5",
+      "description": "High efficiency data segment five."
+    },
+    "he_data6": {
+      "verbose_name": "HE Data 6",
+      "description": "High efficiency data segment six."
+    },
+    "hemu_flags1": {
+      "verbose_name": "HE MU Flags 1",
+      "description": "High efficiency multi-user flags one."
+    },
+    "hemu_flags2": {
+      "verbose_name": "HE MU Flags 2",
+      "description": "High efficiency multi-user flags two."
+    },
+    "hemuou_per_user_1": {
+      "verbose_name": "HE MU Per User 1",
+      "description": "User specific data segment one."
+    },
+    "hemuou_per_user_2": {
+      "verbose_name": "HE MU Per User 2",
+      "description": "User specific data segment two."
+    },
+    "hemuou_per_user_known": {
+      "verbose_name": "HE MU Per User Known",
+      "description": "Known user specific fields."
+    },
+    "hemuou_per_user_position": {
+      "verbose_name": "HE MU Per User Position",
+      "description": "Spatial position of the user."
+    },
+    "knownMCS": {
+      "verbose_name": "Known MCS",
+      "description": "Known modulation and coding properties."
+    },
+    "len": {
+      "verbose_name": "Length",
+      "description": "Total length of the radiotap header."
+    },
+    "lsig_data1": {
+      "verbose_name": "L-SIG Data 1",
+      "description": "Legacy signal field data."
+    },
+    "lsig_length": {
+      "verbose_name": "L-SIG Length",
+      "description": "Length specified in legacy signal."
+    },
+    "lsig_rate": {
+      "verbose_name": "L-SIG Rate",
+      "description": "Rate specified in legacy signal."
+    },
+    "mac_timestamp": {
+      "verbose_name": "MAC Timestamp",
+      "description": "Hardware timestamp."
+    },
+    "mcs_nss": {
+      "verbose_name": "MCS NSS",
+      "description": "Number of spatial streams."
+    },
+    "notdecoded": {
+      "verbose_name": "Not Decoded",
+      "description": "Raw unparsed radiotap data."
+    },
+    "pad": {
+      "verbose_name": "Padding",
+      "description": "Alignment bytes."
+    },
+    "present": {
+      "verbose_name": "Present Flags",
+      "description": "Bitmask indicating which fields are present."
+    },
+    "timestamp": {
+      "verbose_name": "Timestamp",
+      "description": "Packet capture time."
+    },
+    "tlvs": {
+      "verbose_name": "TLVs",
+      "description": "Type length value attributes."
+    },
+    "ts_accuracy": {
+      "verbose_name": "Timestamp Accuracy",
+      "description": "Accuracy of the timing data."
+    },
+    "ts_flags": {
+      "verbose_name": "Timestamp Flags",
+      "description": "Characteristics of the timestamp."
+    },
+    "ts_position": {
+      "verbose_name": "Timestamp Position",
+      "description": "Where the timestamp was sampled."
+    },
+    "ts_unit": {
+      "verbose_name": "Timestamp Unit",
+      "description": "Unit of measurement for the timestamp."
+    },
+    "version": {
+      "verbose_name": "Version",
+      "description": "Radiotap protocol version."
+    }
+  },
+  "Radius": {
+    "attributes": {
+      "verbose_name": "Attributes",
+      "description": "Radius payload attributes."
+    },
+    "authenticator": {
+      "verbose_name": "Authenticator",
+      "description": "Value to authenticate replies and hide passwords."
+    },
+    "code": {
+      "verbose_name": "Code",
+      "description": "Message type like Access-Request."
+    },
+    "id": {
+      "verbose_name": "Identifier",
+      "description": "Matches requests and replies."
+    },
+    "len": {
+      "verbose_name": "Length",
+      "description": "Total packet length."
+    }
+  },
+  "Raw": {
+    "load": {
+      "verbose_name": "Raw Data",
+      "description": "Unparsed payload data."
+    }
+  },
+  "SCTP": {
+    "chksum": {
+      "verbose_name": "Checksum",
+      "description": "Error detection for the SCTP packet."
     },
     "dport": {
       "verbose_name": "Destination Port",
-      "description": "The port number of the receiving process."
+      "description": "The port number of the receiving application."
+    },
+    "sport": {
+      "verbose_name": "Source Port",
+      "description": "The port number of the sending application."
+    },
+    "tag": {
+      "verbose_name": "Verification Tag",
+      "description": "Value to validate the association."
+    }
+  },
+  "SNAP": {
+    "OUI": {
+      "verbose_name": "OUI",
+      "description": "Organizationally unique identifier."
+    },
+    "code": {
+      "verbose_name": "Protocol ID",
+      "description": "Identifies the network protocol."
+    }
+  },
+  "SNMP": {
+    "PDU": {
+      "verbose_name": "Protocol Data Unit",
+      "description": "The SNMP payload data."
+    },
+    "community": {
+      "verbose_name": "Community String",
+      "description": "Password-like text for access."
+    },
+    "version": {
+      "verbose_name": "Version",
+      "description": "The SNMP protocol version."
+    }
+  },
+  "STP": {
+    "age": {
+      "verbose_name": "Message Age",
+      "description": "Time elapsed since the root generated the BPDU."
+    },
+    "bpduflags": {
+      "verbose_name": "BPDU Flags",
+      "description": "Topology change flags."
+    },
+    "bpdutype": {
+      "verbose_name": "BPDU Type",
+      "description": "Message type identifier."
+    },
+    "bridgeid": {
+      "verbose_name": "Bridge Priority",
+      "description": "Priority value for the transmitting bridge."
+    },
+    "bridgemac": {
+      "verbose_name": "Bridge MAC",
+      "description": "MAC address of the transmitting bridge."
+    },
+    "fwddelay": {
+      "verbose_name": "Forward Delay",
+      "description": "Time spent in listening and learning states."
+    },
+    "hellotime": {
+      "verbose_name": "Hello Time",
+      "description": "Time interval between periodic BPDUs."
+    },
+    "maxage": {
+      "verbose_name": "Max Age",
+      "description": "Maximum lifetime of the BPDU."
+    },
+    "pathcost": {
+      "verbose_name": "Root Path Cost",
+      "description": "Cost to reach the root bridge."
+    },
+    "portid": {
+      "verbose_name": "Port ID",
+      "description": "Identifier for the transmitting port."
+    },
+    "proto": {
+      "verbose_name": "Protocol Identifier",
+      "description": "Identifies the spanning tree protocol."
+    },
+    "rootid": {
+      "verbose_name": "Root Priority",
+      "description": "Priority value for the root bridge."
+    },
+    "rootmac": {
+      "verbose_name": "Root MAC",
+      "description": "MAC address of the root bridge."
+    },
+    "version": {
+      "verbose_name": "Protocol Version",
+      "description": "Spanning tree protocol version."
+    }
+  },
+  "TCP": {
+    "ack": {
+      "verbose_name": "Acknowledgment Number",
+      "description": "The next expected sequence number."
+    },
+    "chksum": {
+      "verbose_name": "Checksum",
+      "description": "Error checking for the header and data."
+    },
+    "dataofs": {
+      "verbose_name": "Data Offset",
+      "description": "Length of the TCP header."
+    },
+    "dport": {
+      "verbose_name": "Destination Port",
+      "description": "The receiving port number."
+    },
+    "flags": {
+      "verbose_name": "Flags",
+      "description": "Control bits governing connection state."
+    },
+    "options": {
+      "verbose_name": "Options",
+      "description": "Optional connection parameters."
+    },
+    "reserved": {
+      "verbose_name": "Reserved",
+      "description": "Reserved for future use."
+    },
+    "seq": {
+      "verbose_name": "Sequence Number",
+      "description": "Tracks the order of payload data."
+    },
+    "sport": {
+      "verbose_name": "Source Port",
+      "description": "The sending port number."
+    },
+    "urgptr": {
+      "verbose_name": "Urgent Pointer",
+      "description": "Points to urgent data."
+    },
+    "window": {
+      "verbose_name": "Window Size",
+      "description": "Number of bytes the sender is willing to receive."
+    }
+  },
+  "UDP": {
+    "chksum": {
+      "verbose_name": "Checksum",
+      "description": "Error checking data for the datagram."
+    },
+    "dport": {
+      "verbose_name": "Destination Port",
+      "description": "The receiving port number."
+    },
+    "len": {
+      "verbose_name": "Length",
+      "description": "Total length of the UDP header and data."
+    },
+    "sport": {
+      "verbose_name": "Source Port",
+      "description": "The sending port number."
+    }
+  },
+  "VXLAN": {
+    "NextProtocol": {
+      "verbose_name": "Next Protocol",
+      "description": "The encapsulated protocol type."
+    },
+    "flags": {
+      "verbose_name": "Flags",
+      "description": "VXLAN control flags."
+    },
+    "gpflags": {
+      "verbose_name": "Group Policy Flags",
+      "description": "Policy extensions flags."
+    },
+    "gpid": {
+      "verbose_name": "Group Policy ID",
+      "description": "Identifier for the applied policy."
+    },
+    "reserved0": {
+      "verbose_name": "Reserved 0",
+      "description": "Reserved bits set to zero."
+    },
+    "reserved1": {
+      "verbose_name": "Reserved 1",
+      "description": "Reserved bytes."
+    },
+    "reserved2": {
+      "verbose_name": "Reserved 2",
+      "description": "Reserved bytes."
+    },
+    "vni": {
+      "verbose_name": "VXLAN Network Identifier",
+      "description": "Identifies the overlay network segment."
     }
   }
 }
