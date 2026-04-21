@@ -78,6 +78,8 @@ class SenderWorker(QThread):
 
             if self.remote_config:
                 auto_filter = self._generate_strict_bpf_filter()
+                log.debug(f"Generated BPF Filter for receiver: {auto_filter}")
+
                 self.remote_client = RemoteClient()
                 ip = self.remote_config.get("remote_ip")
                 port = self.remote_config.get("remote_port")
@@ -121,15 +123,19 @@ class SenderWorker(QThread):
         except Exception as e:
             self.errorOccurred.emit(str(e))
         finally:
-            if self.remote_client and self.remote_client.is_connected:
-                try:
-                    log.debug("Sending STOP to remote receiver")
-                    report = self.remote_client.send_stop_command()
-                    if report is not None:
-                        self.remoteReportReceived.emit(report)
-                except Exception:
-                    pass
-                self.remote_client.disconnect_from_host()
+            if self.remote_client:
+                if self.remote_client.is_connected:
+                    try:
+                        log.debug("Sending STOP to remote receiver")
+                        report = self.remote_client.send_stop_command()
+                        if report is not None:
+                            self.remoteReportReceived.emit(report)
+                    except Exception:
+                        pass
+                    self.remote_client.disconnect_from_host()
+
+                self.remote_client.deleteLater() # because remote_client is a QObject
+                self.remote_client = None
 
             self.finished.emit()
 
